@@ -27,14 +27,15 @@ export default function Sender() {
   const createSession = () => {
     const session = Math.random().toString(36).substring(2, 8);
     setSessionId(session);
-    // Build the QR URL using current location
+    // Build the QR URL using current location - ensure proper format for custom domain
     const currentUrl = new URL(window.location.href);
-    const qrUrl = `${currentUrl.origin}${currentUrl.pathname.replace(/\/$/, '')}/receive/${session}`;
+    const qrUrl = `${currentUrl.origin}/receive/${session}`;
     console.log('Debug QR Code generation:', {
       currentHref: window.location.href,
       origin: currentUrl.origin,
       pathname: currentUrl.pathname,
-      qrUrl
+      qrUrl,
+      session
     });
     setQrCode(qrUrl);
     socket.emit('join', { session, deviceInfo: getDeviceInfo() });
