@@ -201,9 +201,19 @@ export default function Sender() {
 
     socket.emit('transfer-start', { session: currentSession, fileName: file.name, fileSize: file.size });
 
-    const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+    const pc = new RTCPeerConnection({ 
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      // Enable aggressive ICE gathering for better performance
+      iceTransportPolicy: 'all'
+    });
     setPeerConnection(pc);
-    const dc = pc.createDataChannel('file');
+    const dc = pc.createDataChannel('file', {
+      // Optimize data channel for large file transfers
+      ordered: true,
+      maxRetransmits: 3,
+      // Set larger buffer sizes for better throughput
+      maxPacketLifeTime: 3000
+    });
 
     socket.emit('join', { session: currentSession });
 
@@ -224,9 +234,22 @@ export default function Sender() {
     });
 
     dc.onopen = () => {
-      const chunkSize = 16384;
+      // Optimize chunk size based on file size and WebRTC capabilities
+      const baseChunkSize = 64 * 1024; // 64KB base
+      const maxChunkSize = 256 * 1024; // 256KB max
+      const fileSize = file.size;
+      
+      // Dynamic chunk sizing: larger files get bigger chunks
+      let chunkSize = baseChunkSize;
+      if (fileSize > 100 * 1024 * 1024) { // > 100MB
+        chunkSize = maxChunkSize;
+      } else if (fileSize > 10 * 1024 * 1024) { // > 10MB
+        chunkSize = 128 * 1024; // 128KB
+      }
+      
       let offset = 0;
       const reader = new FileReader();
+      let isTransferring = true;
 
       reader.onload = (e) => {
         const arrayBuffer = e.target.result;
@@ -235,21 +258,45 @@ export default function Sender() {
         dc.send(JSON.stringify({ type: 'filename', name: file.name }));
 
         const sendChunk = () => {
-          if (offset < totalSize) {
-            const chunk = arrayBuffer.slice(offset, offset + chunkSize);
+          if (!isTransferring || offset >= totalSize) {
+            if (offset >= totalSize) {
+              dc.send('EOF');
+              setTransferProgress(100);
+              socket.emit('transfer-complete', { session: currentSession });
+              setIsTransferring(false);
+            }
+            return;
+          }
+
+          // Check buffer state to prevent overwhelming the connection
+          if (dc.bufferedAmount > chunkSize * 4) {
+            // If buffer is full, wait a bit before sending more
+            setTimeout(sendChunk, 5);
+            return;
+          }
+
+          const chunk = arrayBuffer.slice(offset, offset + chunkSize);
+          try {
             dc.send(chunk);
             offset += chunkSize;
             const progress = Math.round((offset / totalSize) * 100);
             setTransferProgress(progress);
             socket.emit('transfer-progress', { session: currentSession, progress });
-            setTimeout(sendChunk, 10);
-          } else {
-            dc.send('EOF');
-            setTransferProgress(100);
-            socket.emit('transfer-complete', { session: currentSession });
+            
+            // Send next chunk immediately if buffer allows, otherwise minimal delay
+            if (dc.bufferedAmount < chunkSize * 2) {
+              // Buffer is not full, send immediately
+              setTimeout(sendChunk, 0);
+            } else {
+              // Small delay to prevent buffer overflow
+              setTimeout(sendChunk, 1);
+            }
+          } catch (error) {
+            console.error('Error sending chunk:', error);
             setIsTransferring(false);
           }
         };
+        
         sendChunk();
       };
 
