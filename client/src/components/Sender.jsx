@@ -18,6 +18,7 @@ export default function Sender() {
   const [currentFile, setCurrentFile] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [sessionIdCopied, setSessionIdCopied] = useState(false);
   
   // Tab system states
   const [activeTab, setActiveTab] = useState('send'); // 'send' or 'receive'
@@ -86,6 +87,24 @@ export default function Sender() {
       document.body.removeChild(textArea);
       setLinkCopied(true);
       setTimeout(() => setLinkCopied(false), 2000);
+    }
+  };
+
+  const copySessionIdToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(sessionId);
+      setSessionIdCopied(true);
+      setTimeout(() => setSessionIdCopied(false), 2000); // Reset after 2 seconds
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = sessionId;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setSessionIdCopied(true);
+      setTimeout(() => setSessionIdCopied(false), 2000);
     }
   };
 
@@ -200,6 +219,7 @@ export default function Sender() {
     setTransferProgress(0);
     setCurrentFile(null);
     setLinkCopied(false);
+    setSessionIdCopied(false);
     if (peerConnection) peerConnection.close();
     setPeerConnection(null);
     socket.off('device-joined');
@@ -426,7 +446,18 @@ export default function Sender() {
               )}
             </div>
             <p className="qr-session">
-              Session ID: <span>{sessionId}</span>
+              Session ID: <span 
+                className={`session-id-clickable ${sessionIdCopied ? 'copied' : ''}`}
+                onClick={copySessionIdToClipboard}
+                title="Click to copy session ID"
+              >
+                {sessionId}
+              </span>
+              {sessionIdCopied && (
+                <span className="copy-feedback session-copy-feedback">
+                  ✓ Copied!
+                </span>
+              )}
             </p>
           </div>
         )}
