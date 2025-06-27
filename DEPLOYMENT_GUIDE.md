@@ -29,23 +29,23 @@ git branch -M main
 git push -u origin main
 ```
 
-## Step 2: Deploy Server to Heroku
+## Step 2: Deploy Server to Render.com (100% FREE)
 
-### 2.1 Heroku Setup (Free Option)
+### 2.1 Render.com Setup
 
-Since Heroku requires payment verification for new apps, let's use **Render.com** instead (completely free):
+Render.com offers completely free hosting for Node.js applications with no payment verification required!
 
 1. **Go to [Render.com](https://render.com)**
-2. **Sign up** with your GitHub account
+2. **Sign up** with your GitHub account (free)
 3. **Click "New +"** → **"Web Service"**
 4. **Connect your GitHub repository**
 5. **Configure the service**:
-   - **Name**: `file-share-server` (or any name)
+   - **Name**: `file-share-server` (or any name you prefer)
    - **Root Directory**: `server`
    - **Environment**: `Node`
    - **Build Command**: `npm install`
    - **Start Command**: `npm start`
-   - **Instance Type**: `Free`
+   - **Instance Type**: `Free` (750 hours/month FREE)
 
 6. **Add Environment Variable**:
    - **Key**: `NODE_ENV`
@@ -55,10 +55,18 @@ Since Heroku requires payment verification for new apps, let's use **Render.com*
 
 ### 2.2 Get Your Server URL
 
-After deployment, Render will provide a URL like:
+After deployment (takes 2-3 minutes), Render will provide a URL like:
 `https://file-share-server-xxxx.onrender.com`
 
 **Copy this URL** - you'll need it for the client configuration.
+
+### 2.3 Render.com Benefits
+
+- ✅ **100% FREE** - No credit card required
+- ✅ **750 hours/month** - More than enough for personal use
+- ✅ **Automatic SSL** - HTTPS included
+- ✅ **GitHub integration** - Auto-deploys on push
+- ✅ **Fast deployment** - Usually under 3 minutes
 
 ## Step 3: Update Client Configuration
 
@@ -69,7 +77,7 @@ Edit `client/src/config.js`:
 ```javascript
 const config = {
   SOCKET_URL: import.meta.env.PROD 
-    ? 'https://your-render-url.onrender.com'  // Replace with your actual Render URL
+    ? 'https://your-actual-render-url.onrender.com'  // Replace with your actual Render URL
     : 'http://10.0.0.15:4000'
 };
 
@@ -112,23 +120,25 @@ Your app will be available at:
 
 ### Common Issues:
 
-1. **Server not starting**: Check Render logs for errors
+1. **Server not starting**: Check Render logs in dashboard
 2. **CORS errors**: Server is configured to allow GitHub Pages domains
-3. **Client not connecting**: Verify server URL in config.js
-4. **404 on GitHub Pages**: Check base path in vite.config.js
+3. **Client not connecting**: Verify server URL in config.js matches Render URL
+4. **404 on GitHub Pages**: Check base path in vite.config.js matches repo name
+5. **Render service sleeping**: Free tier sleeps after 15 min of inactivity (wakes up automatically)
 
 ### Testing Checklist:
 
-✅ Server URL returns a response  
+✅ Server URL returns a response when visited  
 ✅ Client loads on GitHub Pages  
 ✅ QR code generates successfully  
 ✅ File transfer works between devices  
 
 ## Free Deployment Summary
 
-- **Server**: Render.com (Free tier)
-- **Client**: GitHub Pages (Free)
+- **Server**: Render.com (Free tier - 750 hours/month)
+- **Client**: GitHub Pages (Unlimited - Free)
 - **Total Cost**: $0 🎉
+- **Monthly Limits**: More than enough for personal/small team use
 
 ## Commands Summary
 
@@ -146,5 +156,14 @@ npm run deploy
 # 4. Update client config with server URL
 # 5. Redeploy client with updated config
 ```
+
+## Why Render.com?
+
+- **No payment verification** required (unlike Heroku)
+- **More generous free tier** than most competitors
+- **Automatic HTTPS** and SSL certificates
+- **GitHub integration** for automatic deployments
+- **Excellent uptime** and performance
+- **Easy to use** dashboard and deployment process
 
 🎉 **You're all set!** Your file-sharing app is now deployed and accessible worldwide!

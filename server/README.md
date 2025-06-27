@@ -1,15 +1,23 @@
-# Railway Deployment
+# Render.com Deployment
 
-This directory contains the server code for the file-sharing application.
+This server is configured for deployment on Render.com.
 
-## Deployment to Railway
+## Deployment Steps
 
-1. Push your code to GitHub
-2. Connect Railway to your GitHub repository  
-3. Deploy the server from this directory
+1. Connect your GitHub repository to Render.com
+2. Create a new Web Service
+3. Set Root Directory to `server`
+4. Use build command: `npm install`
+5. Use start command: `npm start`
+6. Set environment variable: `NODE_ENV=production`
 
 ## Environment Variables
 
-No additional environment variables are required. The server will use:
-- `PORT`: Automatically provided by Railway
-- `NODE_ENV`: Set to 'production' in deployment
+- `NODE_ENV`: Set to 'production' in Render dashboard
+- `PORT`: Automatically provided by Render
+
+## Features
+
+- CORS configured for GitHub Pages domains
+- Automatic port binding for Render
+- WebSocket support for real-time communication

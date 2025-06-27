@@ -40,7 +40,7 @@ file-sharing/
 ├── server/                 # Node.js backend
 │   ├── index.js              # Socket.IO server
 │   ├── package.json
-│   └── Procfile             # Heroku deployment
+│   └── README.md            # Render deployment guide
 ├── .github/workflows/       # GitHub Actions
 └── DEPLOYMENT_GUIDE.md     # Deployment instructions
 ```
