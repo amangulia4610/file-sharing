@@ -17,6 +17,17 @@ export default function Sender() {
   const [transferProgress, setTransferProgress] = useState(0);
   const [currentFile, setCurrentFile] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  
+  // Tab system states
+  const [activeTab, setActiveTab] = useState('send'); // 'send' or 'receive'
+  
+  // Receiver mode states
+  const [receiverSessionId, setReceiverSessionId] = useState('');
+  const [receiverStatus, setReceiverStatus] = useState('');
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [receivedFile, setReceivedFile] = useState(null);
+  const [isReceiving, setIsReceiving] = useState(false);
 
   const getDeviceInfo = () => ({
     type: 'sender',
@@ -62,6 +73,24 @@ export default function Sender() {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const copyLinkToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(qrCode);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000); // Reset after 2 seconds
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = qrCode;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    }
   };
 
   const createSession = () => {
@@ -174,7 +203,7 @@ export default function Sender() {
     setConnectedDevices([]);
     setTransferProgress(0);
     setCurrentFile(null);
-    setCurrentFile(null);
+    setLinkCopied(false);
     if (peerConnection) peerConnection.close();
     setPeerConnection(null);
     socket.off('device-joined');
@@ -182,12 +211,156 @@ export default function Sender() {
     socket.off('session-info');
   };
 
+  // Tab switching
+  const switchTab = (tab) => {
+    setActiveTab(tab);
+    if (tab === 'send') {
+      // Reset receiver states when switching to send
+      setReceiverSessionId('');
+      setReceiverStatus('');
+      setDownloadProgress(0);
+      setReceivedFile(null);
+      setIsReceiving(false);
+    } else {
+      // Reset sender states when switching to receive
+      resetSession();
+    }
+  };
+
+  // Receiver functionality
+  const joinReceiveSession = () => {
+    if (!receiverSessionId.trim()) {
+      alert('Please enter a session ID');
+      return;
+    }
+
+    setIsReceiving(true);
+    setReceiverStatus('Connecting to session...');
+    
+    const pc = new RTCPeerConnection({
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+      ]
+    });
+
+    let chunks = [];
+    let totalSize = 0;
+    let receivedSize = 0;
+    let originalFileName = 'received_file';
+
+    socket.emit('join', { session: receiverSessionId, deviceInfo: getDeviceInfo() });
+    setReceiverStatus('Joined session, waiting for sender...');
+
+    socket.on('transfer-start', ({ fileName, fileSize }) => {
+      setReceivedFile({ fileName, fileSize });
+      setReceiverStatus(`Receiving ${fileName}...`);
+      totalSize = fileSize;
+    });
+
+    socket.on('transfer-progress', ({ progress }) => {
+      setDownloadProgress(progress);
+      setReceiverStatus(`Receiving... ${progress}%`);
+    });
+
+    socket.on('transfer-complete', () => {
+      setReceiverStatus('Transfer complete! Processing file...');
+      setTimeout(() => {
+        const blob = new Blob(chunks);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = originalFileName;
+        a.click();
+        URL.revokeObjectURL(url);
+        setReceiverStatus('File downloaded successfully!');
+        setIsReceiving(false);
+      }, 1000);
+    });
+
+    socket.on('offer', async ({ offer }) => {
+      await pc.setRemoteDescription(new RTCSessionDescription(offer));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      socket.emit('answer', { session: receiverSessionId, answer });
+    });
+
+    socket.on('candidate', async ({ candidate }) => {
+      await pc.addIceCandidate(new RTCIceCandidate(candidate));
+    });
+
+    pc.onicecandidate = (event) => {
+      if (event.candidate) {
+        socket.emit('candidate', { session: receiverSessionId, candidate: event.candidate });
+      }
+    };
+
+    pc.ondatachannel = (event) => {
+      const dc = event.channel;
+      dc.onmessage = (event) => {
+        if (typeof event.data === 'string') {
+          if (event.data === 'EOF') {
+            setReceiverStatus('Transfer complete!');
+            return;
+          }
+          try {
+            const metadata = JSON.parse(event.data);
+            if (metadata.type === 'filename') {
+              originalFileName = metadata.name;
+            }
+          } catch (e) {
+            // Not JSON, ignore
+          }
+        } else {
+          chunks.push(event.data);
+          receivedSize += event.data.byteLength;
+          const progress = Math.round((receivedSize / totalSize) * 100);
+          setDownloadProgress(progress);
+        }
+      };
+    };
+  };
+
+  const resetReceiveMode = () => {
+    setReceiverSessionId('');
+    setReceiverStatus('');
+    setDownloadProgress(0);
+    setReceivedFile(null);
+    setIsReceiving(false);
+    if (peerConnection) peerConnection.close();
+    setPeerConnection(null);
+    socket.off('transfer-start');
+    socket.off('transfer-progress');
+    socket.off('transfer-complete');
+    socket.off('offer');
+    socket.off('candidate');
+  };
+
   return (
     <div className="sender-container">
       <div className="sender-box">
-        <h1 className="sender-title">📤 Send a File</h1>
+        <h1 className="sender-title">� File Share Hub</h1>
         
-        {!sessionId ? (
+        {/* Tab Navigation */}
+        <div className="tab-navigation">
+          <button 
+            className={`tab-btn ${activeTab === 'send' ? 'active' : ''}`}
+            onClick={() => switchTab('send')}
+          >
+            �📤 Send File
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'receive' ? 'active' : ''}`}
+            onClick={() => switchTab('receive')}
+          >
+            📥 Receive File
+          </button>
+        </div>
+
+        {/* Send File Tab */}
+        {activeTab === 'send' && (
+          <>
+            {!sessionId ? (
           <>
             <p className="sender-subtext">
               Share files instantly and securely across devices using peer-to-peer technology.
@@ -336,11 +509,127 @@ export default function Sender() {
             <div className="qr-image">
               <QRCodeSVG value={qrCode} size={180} />
             </div>
-            <p className="qr-code">{qrCode}</p>
+            <div 
+              className={`qr-code ${linkCopied ? 'copied' : ''}`}
+              onClick={copyLinkToClipboard}
+              title="Click to copy link"
+            >
+              {qrCode}
+              {linkCopied && (
+                <span className="copy-feedback">
+                  ✓ Copied!
+                </span>
+              )}
+            </div>
             <p className="qr-session">
               Session ID: <span>{sessionId}</span>
             </p>
           </div>
+        )}
+          </>
+        )}
+
+        {/* Receive File Tab */}
+        {activeTab === 'receive' && (
+          <>
+            <p className="sender-subtext">
+              Enter a session ID to connect and receive files from another device.
+            </p>
+            
+            <div className="instructions">
+              <div className="instructions-title">
+                🎯 How to Receive Files
+              </div>
+              <ul className="instructions-list">
+                <li>
+                  <span className="step-number">1</span>
+                  Get the session ID from the sender (QR code or shared link)
+                </li>
+                <li>
+                  <span className="step-number">2</span>
+                  Enter the 6-character session ID below
+                </li>
+                <li>
+                  <span className="step-number">3</span>
+                  Click "Join Session" to connect to the sender
+                </li>
+                <li>
+                  <span className="step-number">4</span>
+                  Wait for the sender to start the file transfer
+                </li>
+                <li>
+                  <span className="step-number">5</span>
+                  Your file will download automatically when complete
+                </li>
+              </ul>
+            </div>
+
+            {!isReceiving ? (
+              <div className="receiver-input-section">
+                <div className="input-group">
+                  <label htmlFor="sessionInput" className="input-label">
+                    📋 Session ID
+                  </label>
+                  <input
+                    id="sessionInput"
+                    type="text"
+                    value={receiverSessionId}
+                    onChange={(e) => setReceiverSessionId(e.target.value.toUpperCase())}
+                    placeholder="Enter 6-character session ID"
+                    className="session-input"
+                    maxLength={6}
+                  />
+                </div>
+                
+                <div className="btn-group">
+                  <button 
+                    onClick={joinReceiveSession}
+                    disabled={!receiverSessionId.trim()}
+                    className={`btn ${!receiverSessionId.trim() ? 'btn-disabled' : 'btn-primary'}`}
+                  >
+                    🔗 Join Session
+                  </button>
+                  <button onClick={resetReceiveMode} className="btn btn-danger">
+                    🔁 Clear
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="receiver-status-section">
+                <div className="receiver-info">
+                  <div className="info-title">
+                    📡 Connection Status
+                  </div>
+                  <p className="info-text">{receiverStatus}</p>
+                  {receivedFile && (
+                    <div className="file-info">
+                      <div className="file-icon">📄</div>
+                      <div className="file-details">
+                        <h4>{receivedFile.fileName}</h4>
+                        <p>Size: {formatFileSize(receivedFile.fileSize)}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {downloadProgress > 0 && (
+                  <div className="progress-box">
+                    <div className="progress-title">
+                      📥 Receiving: {receivedFile?.fileName || 'File'}
+                    </div>
+                    <div className="progress-bar">
+                      <div className="progress-inner" style={{ width: `${downloadProgress}%` }}></div>
+                    </div>
+                    <div className="progress-text">{downloadProgress}%</div>
+                  </div>
+                )}
+
+                <button onClick={resetReceiveMode} className="btn btn-danger">
+                  ❌ Cancel Reception
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
