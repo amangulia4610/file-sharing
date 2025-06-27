@@ -8,7 +8,8 @@ import './style.css';
 const socket = io(config.SOCKET_URL);
 
 export default function Receiver() {
-  const { session } = useParams();
+  const { session: rawSession } = useParams();
+  const session = rawSession?.toLowerCase(); // Normalize session ID to lowercase
   const [status, setStatus] = useState('Connecting to WiFi session...');
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [transferInfo, setTransferInfo] = useState(null);

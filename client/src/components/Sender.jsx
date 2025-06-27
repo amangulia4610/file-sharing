@@ -313,12 +313,15 @@ export default function Sender() {
       return;
     }
 
+    // Convert session ID to lowercase before verification and joining
+    const normalizedSessionId = receiverSessionId.trim().toLowerCase();
+
     // Verify session exists before redirecting
-    verifySession(receiverSessionId.trim(), (exists) => {
+    verifySession(normalizedSessionId, (exists) => {
       if (exists) {
         // Redirect to the proper receiver URL
         const currentUrl = new URL(window.location.href);
-        const receiverUrl = `${currentUrl.origin}/receive/${receiverSessionId.trim()}`;
+        const receiverUrl = `${currentUrl.origin}/receive/${normalizedSessionId}`;
         window.location.href = receiverUrl;
       } else {
         alert('Session not found. Please check the session ID and make sure the sender has created the session.');
@@ -671,7 +674,7 @@ export default function Sender() {
                   className="session-input"
                   maxLength={6}
                   onKeyPress={(e) => {
-                    if (e.key === 'Enter' && receiverSessionId.trim()) {
+                    if (e.key === 'Enter' && receiverSessionId.trim().toLowerCase()) {
                       joinReceiveSession();
                     }
                   }}
