@@ -27,17 +27,13 @@ export default function Sender() {
   const createSession = () => {
     const session = Math.random().toString(36).substring(2, 8);
     setSessionId(session);
-    // Include the base path for GitHub Pages deployment
-    const isGitHubPages = window.location.hostname === 'amangulia4610.github.io';
-    const baseUrl = isGitHubPages 
-      ? `${window.location.origin}/file-sharing`
-      : window.location.origin;
-    const qrUrl = `${baseUrl}/receive/${session}`;
+    // Build the QR URL using current location
+    const currentUrl = new URL(window.location.href);
+    const qrUrl = `${currentUrl.origin}${currentUrl.pathname.replace(/\/$/, '')}/receive/${session}`;
     console.log('Debug QR Code generation:', {
-      hostname: window.location.hostname,
-      isGitHubPages,
-      origin: window.location.origin,
-      baseUrl,
+      currentHref: window.location.href,
+      origin: currentUrl.origin,
+      pathname: currentUrl.pathname,
       qrUrl
     });
     setQrCode(qrUrl);
