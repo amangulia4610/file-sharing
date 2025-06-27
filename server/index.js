@@ -1,16 +1,39 @@
 // File: server/index.js
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
+
+// Environment configuration
+const PORT = process.env.PORT || 4000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+
+// CORS configuration
+const corsOptions = {
+  origin: NODE_ENV === 'production' ? false : '*',
+  credentials: true
+};
+
+app.use(cors(corsOptions));
+
 const io = socketIo(server, {
-  cors: {
-    origin: '*',
-  },
+  cors: corsOptions,
 });
+
+// Serve static files from the React app build in production
+if (NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../client/dist')));
+  
+  // Catch all handler: send back React's index.html file for any non-API routes
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+  });
+}
 
 const sessions = {};
 
@@ -92,6 +115,11 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(4000, '0.0.0.0', () => {
-  console.log('Signaling server running on http://10.0.0.15:4000');
+server.listen(PORT, '0.0.0.0', () => {
+  const host = NODE_ENV === 'production' ? '0.0.0.0' : '10.0.0.15';
+  console.log(`🚀 Server running in ${NODE_ENV} mode`);
+  console.log(`📡 Signaling server: http://${host}:${PORT}`);
+  if (NODE_ENV === 'production') {
+    console.log(`🌐 Web app available at: http://${host}:${PORT}`);
+  }
 });
