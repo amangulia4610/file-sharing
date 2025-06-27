@@ -15,8 +15,15 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // CORS configuration
 const corsOptions = {
-  origin: NODE_ENV === 'production' ? false : '*',
-  credentials: true
+  origin: NODE_ENV === 'production' 
+    ? [
+        /\.github\.io$/,  // Allow any GitHub Pages domain
+        /localhost/,      // Allow localhost for testing
+        /127\.0\.0\.1/    // Allow local IP testing
+      ]
+    : '*',
+  credentials: true,
+  methods: ['GET', 'POST']
 };
 
 app.use(cors(corsOptions));
