@@ -1,169 +1,194 @@
-# P2P File Sharing App
+# 📤 P2P File Sharing App
 
-A peer-to-peer file sharing application built with React, Node.js, Socket.IO, and WebRTC. Share files directly between devices on the same network without uploading to any server.
+A modern, secure peer-to-peer file sharing application built with React and Socket.IO that allows you to share files directly between devices on your local network.
 
-## Features
+## ✨ Features
 
-- 🔄 **Peer-to-Peer Transfer**: Direct file sharing using WebRTC
+- 🔐 **Secure P2P Transfer**: Direct device-to-device file transfer using WebRTC
 - 📱 **Cross-Platform**: Works on desktop and mobile devices
-- 🔒 **Network Local**: Files stay within your local network
+- 🎯 **QR Code Sharing**: Easy connection via QR code scanning
 - 📊 **Real-time Progress**: Live transfer progress tracking
-- 🔗 **QR Code Sharing**: Easy session sharing via QR codes
-- 🌐 **Network Access**: Accessible across local network devices
+- 🌐 **Local Network**: No internet required, works on local networks
+- 🎨 **Modern UI**: Beautiful, responsive interface with Tailwind CSS
 
-## Quick Start
+## 🚀 Live Demo
 
-### Development Mode
+- **Client**: [Coming Soon - Deploy to GitHub Pages]
+- **Server**: [Coming Soon - Deploy to Render.com]
 
-1. **Install dependencies:**
-   ```bash
-   npm run install:all
-   ```
+## 🛠️ Tech Stack
 
-2. **Start development servers:**
-   ```bash
-   npm run dev
-   ```
-   This starts both the client (React) and server (Node.js) concurrently.
+- **Frontend**: React 19, Vite, Tailwind CSS
+- **Backend**: Node.js, Express, Socket.IO
+- **P2P**: WebRTC for direct file transfer
+- **Deployment**: GitHub Pages (client) + Render.com (server)
 
-3. **Access the application:**
-   - Local: `http://localhost:5173`
-   - Network: `http://[YOUR-IP]:5173`
+## 📁 Project Structure
 
-### Production Mode
-
-1. **Install dependencies:**
-   ```bash
-   npm run install:all
-   ```
-
-2. **Build and start production:**
-   ```bash
-   npm run production
-   ```
-
-3. **Access the application:**
-   - `http://[YOUR-IP]:4000`
-
-## Production Deployment
-
-### Method 1: Direct Node.js
-
-1. **Set environment variables:**
-   ```bash
-   export NODE_ENV=production
-   export PORT=4000
-   ```
-
-2. **Build and start:**
-   ```bash
-   npm run build
-   npm start
-   ```
-
-### Method 2: Using Docker
-
-1. **Build Docker image:**
-   ```bash
-   docker build -t p2p-file-share .
-   ```
-
-2. **Run container:**
-   ```bash
-   docker run -p 4000:4000 -e NODE_ENV=production p2p-file-share
-   ```
-
-### Method 3: Using PM2 (Recommended for production)
-
-1. **Install PM2:**
-   ```bash
-   npm install -g pm2
-   ```
-
-2. **Build the application:**
-   ```bash
-   npm run build
-   ```
-
-3. **Start with PM2:**
-   ```bash
-   pm2 start server/index.js --name "file-share-app" --env production
-   ```
-
-## Environment Configuration
-
-Create a `.env` file in the root directory:
-
-```env
-NODE_ENV=production  # or development
-PORT=4000           # Server port
+```
+file-sharing/
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Sender.jsx     # File sending component
+│   │   │   └── Receiver.jsx   # File receiving component
+│   │   ├── App.jsx
+│   │   ├── config.js          # Server configuration
+│   │   └── main.jsx
+│   ├── package.json
+│   └── vite.config.js
+├── server/                 # Node.js backend
+│   ├── index.js              # Socket.IO server
+│   ├── package.json
+│   └── Procfile             # Heroku deployment
+├── .github/workflows/       # GitHub Actions
+└── DEPLOYMENT_GUIDE.md     # Deployment instructions
 ```
 
-## Architecture
+## 🏃‍♂️ Quick Start
 
-- **Frontend**: React with Vite bundler
-- **Backend**: Express.js with Socket.IO for signaling
-- **File Transfer**: WebRTC DataChannel for peer-to-peer transfer
-- **Session Management**: Socket.IO rooms for device coordination
+### Prerequisites
 
-## How It Works
+- Node.js 18+ 
+- npm or yarn
 
-1. **Sender** creates a session and gets a QR code
-2. **Receiver** scans QR code or enters session URL
-3. **Socket.IO** facilitates WebRTC connection setup
-4. **Files transfer directly** between devices via WebRTC
-5. **No files** are stored on the server
+### Local Development
 
-## Network Requirements
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/file-sharing.git
+   cd file-sharing
+   ```
 
-- Both devices must be on the same local network
-- Firewall should allow connections on the configured port (default: 4000)
-- For external access, configure router port forwarding
+2. **Install dependencies**:
+   ```bash
+   # Install root dependencies
+   npm run install:all
+   
+   # Or install manually
+   npm install
+   cd client && npm install
+   cd ../server && npm install
+   ```
 
-## Available Scripts
+3. **Start development servers**:
+   ```bash
+   # Start both client and server
+   npm run dev
+   
+   # Or start individually
+   npm run server:dev  # Server on http://localhost:4000
+   npm run client:dev  # Client on http://localhost:5173
+   ```
 
-- `npm run dev` - Start development servers
-- `npm run build` - Build React app for production
-- `npm start` - Start production server
-- `npm run production` - Build and start production
-- `npm run install:all` - Install all dependencies
-- `npm run server:dev` - Start server with nodemon
-- `npm run client:dev` - Start client development server
+4. **Open your browser**:
+   - Sender: `http://localhost:5173`
+   - Receiver: `http://localhost:5173/receive/SESSION_ID`
 
-## Browser Support
+## 🌐 Deployment
 
-- Chrome/Chromium (recommended)
-- Firefox
-- Safari (iOS/macOS)
-- Edge
+Follow the comprehensive [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for step-by-step deployment instructions.
 
-Note: WebRTC support required for file transfer functionality.
+### Quick Deployment Summary:
 
-## Troubleshooting
+1. **Deploy Server** (Free on Render.com):
+   - Connect GitHub repo to Render
+   - Set root directory to `server`
+   - Deploy with `npm start`
 
-### Connection Issues
-- Ensure devices are on the same network
-- Check firewall settings
-- Verify the correct IP address is being used
+2. **Update Client Config**:
+   - Add your server URL to `client/src/config.js`
+   - Update repository name in `client/vite.config.js`
 
-### File Transfer Issues
-- Large files may take time to establish connection
-- Check browser console for WebRTC errors
-- Ensure stable network connection
+3. **Deploy Client** (Free on GitHub Pages):
+   ```bash
+   cd client
+   npm run deploy
+   ```
 
-### Mobile Access
-- Use the network IP address (not localhost)
-- Ensure mobile device is on the same WiFi network
-- Some mobile browsers may have WebRTC limitations
+## 🎯 How It Works
 
-## Contributing
+1. **Create Session**: Sender creates a unique session ID
+2. **Share QR Code**: QR code contains receiver URL with session ID
+3. **Connect Devices**: Receiver scans QR code or enters session ID
+4. **WebRTC Setup**: Direct P2P connection established via signaling server
+5. **File Transfer**: Files transferred directly between devices
+
+## 🔧 Configuration
+
+### Client Configuration (`client/src/config.js`)
+
+```javascript
+const config = {
+  SOCKET_URL: import.meta.env.PROD 
+    ? 'https://your-server-url.onrender.com' // Your deployed server
+    : 'http://localhost:4000'                // Local development
+};
+```
+
+### Server Configuration (`server/index.js`)
+
+- **Port**: Uses `process.env.PORT` or defaults to 4000
+- **CORS**: Configured for GitHub Pages and localhost
+- **WebRTC**: STUN servers for NAT traversal
+
+## 📱 Usage
+
+### Sending Files
+
+1. Open the app and click "Create Secure Session"
+2. Select a file to send
+3. Share the QR code with the receiving device
+4. Click "Send File" once receiver connects
+5. Monitor transfer progress
+
+### Receiving Files
+
+1. Scan QR code or visit the receiver URL
+2. Wait for sender to initiate transfer
+3. File will download automatically
+4. Check download folder for received file
+
+## 🔒 Security Features
+
+- **Session-based**: Unique session IDs for each transfer
+- **Local Network**: Transfers don't leave your network
+- **No File Storage**: Files are transferred directly, not stored on server
+- **Temporary Sessions**: Sessions expire after use
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
+2. Create a feature branch: `git checkout -b feature/new-feature`
+3. Commit changes: `git commit -m 'Add new feature'`
+4. Push to branch: `git push origin feature/new-feature`
 5. Submit a pull request
 
-## License
+## 📝 License
 
-MIT License - feel free to use and modify as needed.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+- **Connection fails**: Check if both devices are on the same network
+- **CORS errors**: Verify server URL in client config
+- **Transfer stalls**: Try refreshing and creating a new session
+- **QR code not working**: Ensure receiver device can access the URL
+
+### Getting Help
+
+- Check the [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for deployment issues
+- Open an issue for bugs or feature requests
+- Make sure your server is running and accessible
+
+## 🎉 Acknowledgments
+
+- Built with ❤️ using React and Socket.IO
+- Icons and design inspiration from modern file sharing apps
+- WebRTC implementation based on MDN documentation
+
+---
+
+**Happy file sharing! 📤**

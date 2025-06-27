@@ -1,9 +1,8 @@
 // Environment configuration for Socket.IO connection
 const config = {
-  // In production, connect to the same server that serves the app
-  // In development, connect to the development server
+  // Replace this URL with your deployed server URL from Render.com
   SOCKET_URL: import.meta.env.PROD 
-    ? window.location.origin 
+    ? 'https://your-render-server-url.onrender.com' // Replace with your actual server URL
     : 'http://10.0.0.15:4000'
 };
 
