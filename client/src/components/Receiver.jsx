@@ -208,7 +208,7 @@ export default function Receiver() {
       dc.onmessage = (e) => {
         if (typeof e.data === 'string') {
           if (e.data === 'EOF') {
-            // Create blob and download with optimized settings
+            // Create blob and download immediately for best performance
             const blob = new Blob(chunks, { type: 'application/octet-stream' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -219,8 +219,8 @@ export default function Receiver() {
             a.click();
             document.body.removeChild(a);
             
-            // Clean up immediately after download starts
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            // Clean up immediately
+            setTimeout(() => URL.revokeObjectURL(url), 100);
             
             setStatus('Download complete!');
             setDownloadProgress(100);
@@ -238,48 +238,46 @@ export default function Receiver() {
             }
           }
         } else {
-          // Handle binary data chunks more efficiently
+          // Handle binary data chunks - optimized for high throughput
           const chunkSize = e.data.byteLength || e.data.size || 0;
           chunks.push(e.data);
           receivedSize += chunkSize;
           
-          // Update progress and speed calculations
+          // Update progress and speed calculations less frequently for better performance
           const currentTime = Date.now();
           if (startTime === null) {
             startTime = currentTime;
             lastProgressTime = currentTime;
           }
           
-          // Calculate download speed every 500ms to avoid too frequent updates
-          if (currentTime - lastProgressTime >= 500) {
-            const timeDiff = (currentTime - lastProgressTime) / 1000; // seconds
+          // Calculate download speed every 200ms for smooth updates
+          if (currentTime - lastProgressTime >= 200) {
+            const timeDiff = (currentTime - lastProgressTime) / 1000;
             const sizeDiff = receivedSize - lastReceivedSize;
-            const speed = sizeDiff / timeDiff; // bytes per second
+            const speed = sizeDiff / timeDiff;
             
             setDownloadSpeed(speed);
             lastProgressTime = currentTime;
             lastReceivedSize = receivedSize;
             
-            // Calculate estimated time remaining
+            // Calculate time remaining
             if (totalSize > 0 && speed > 0) {
               const remainingBytes = totalSize - receivedSize;
               const timeRemaining = remainingBytes / speed;
               setTimeRemaining(timeRemaining);
             }
-          }
-          
-          // Update progress
-          const progress = totalSize > 0 ? (receivedSize / totalSize) * 100 : 0;
-          setDownloadProgress(Math.round(progress));
-          
-          // Update status with better formatting
-          if (totalSize > 0) {
-            const received = formatFileSize(receivedSize);
-            const total = formatFileSize(totalSize);
-            const speedText = downloadSpeed > 0 ? ` • ${formatFileSize(downloadSpeed)}/s` : '';
-            setStatus(`Receiving ${originalFileName}... ${received}/${total} (${Math.round(progress)}%)${speedText}`);
-          } else {
-            setStatus(`Receiving ${originalFileName}... ${formatFileSize(receivedSize)} received`);
+            
+            // Update progress
+            const progress = totalSize > 0 ? (receivedSize / totalSize) * 100 : 0;
+            setDownloadProgress(Math.round(progress));
+            
+            // Update status with speed info
+            if (totalSize > 0) {
+              const received = formatFileSize(receivedSize);
+              const total = formatFileSize(totalSize);
+              const speedText = speed > 0 ? ` • ${formatFileSize(speed)}/s` : '';
+              setStatus(`Receiving ${originalFileName}... ${received}/${total} (${Math.round(progress)}%)${speedText}`);
+            }
           }
         }
       };

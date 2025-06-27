@@ -15,6 +15,7 @@ export default function Sender() {
   const [peerConnection, setPeerConnection] = useState(null);
   const [connectedDevices, setConnectedDevices] = useState([]);
   const [transferProgress, setTransferProgress] = useState(0);
+  const [transferSpeed, setTransferSpeed] = useState(0);
   const [currentFile, setCurrentFile] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
@@ -202,17 +203,21 @@ export default function Sender() {
     socket.emit('transfer-start', { session: currentSession, fileName: file.name, fileSize: file.size });
 
     const pc = new RTCPeerConnection({ 
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-      // Enable aggressive ICE gathering for better performance
-      iceTransportPolicy: 'all'
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+      ],
+      // Optimize for maximum throughput
+      iceTransportPolicy: 'all',
+      bundlePolicy: 'max-bundle',
+      rtcpMuxPolicy: 'require'
     });
     setPeerConnection(pc);
     const dc = pc.createDataChannel('file', {
-      // Optimize data channel for large file transfers
-      ordered: true,
-      maxRetransmits: 3,
-      // Set larger buffer sizes for better throughput
-      maxPacketLifeTime: 3000
+      // Optimize for maximum speed and reliability
+      ordered: false, // Allow out-of-order delivery for speed
+      maxRetransmits: 0, // No retransmissions for speed
+      protocol: 'tcp' // Use TCP-like reliability without retransmits
     });
 
     socket.emit('join', { session: currentSession });
@@ -234,65 +239,65 @@ export default function Sender() {
     });
 
     dc.onopen = () => {
-      // Optimize chunk size based on file size and WebRTC capabilities
-      const baseChunkSize = 64 * 1024; // 64KB base
-      const maxChunkSize = 256 * 1024; // 256KB max
-      const fileSize = file.size;
-      
-      // Dynamic chunk sizing: larger files get bigger chunks
-      let chunkSize = baseChunkSize;
-      if (fileSize > 100 * 1024 * 1024) { // > 100MB
-        chunkSize = maxChunkSize;
-      } else if (fileSize > 10 * 1024 * 1024) { // > 10MB
-        chunkSize = 128 * 1024; // 128KB
-      }
-      
+      // Maximize chunk size for best performance - WebRTC can handle up to 1MB chunks
+      const chunkSize = 1024 * 1024; // 1MB chunks for maximum throughput
       let offset = 0;
       const reader = new FileReader();
-      let isTransferring = true;
+      let startTime = null;
+      let lastProgressTime = null;
+      let lastOffset = 0;
 
       reader.onload = (e) => {
         const arrayBuffer = e.target.result;
         const totalSize = arrayBuffer.byteLength;
+        startTime = Date.now();
+        lastProgressTime = startTime;
 
         dc.send(JSON.stringify({ type: 'filename', name: file.name }));
 
         const sendChunk = () => {
-          if (!isTransferring || offset >= totalSize) {
-            if (offset >= totalSize) {
-              dc.send('EOF');
-              setTransferProgress(100);
-              socket.emit('transfer-complete', { session: currentSession });
-              setIsTransferring(false);
-            }
+          // Check if transfer is complete
+          if (offset >= totalSize) {
+            dc.send('EOF');
+            setTransferProgress(100);
+            setTransferSpeed(0);
+            socket.emit('transfer-complete', { session: currentSession });
+            setIsTransferring(false);
             return;
           }
 
-          // Check buffer state to prevent overwhelming the connection
-          if (dc.bufferedAmount > chunkSize * 4) {
-            // If buffer is full, wait a bit before sending more
-            setTimeout(sendChunk, 5);
-            return;
-          }
-
-          const chunk = arrayBuffer.slice(offset, offset + chunkSize);
-          try {
+          // Send chunks as fast as possible while respecting buffer limits
+          while (offset < totalSize && dc.bufferedAmount < chunkSize * 8) {
+            const chunk = arrayBuffer.slice(offset, offset + chunkSize);
             dc.send(chunk);
             offset += chunkSize;
+            
             const progress = Math.round((offset / totalSize) * 100);
             setTransferProgress(progress);
             socket.emit('transfer-progress', { session: currentSession, progress });
             
-            // Send next chunk immediately if buffer allows, otherwise minimal delay
-            if (dc.bufferedAmount < chunkSize * 2) {
-              // Buffer is not full, send immediately
-              setTimeout(sendChunk, 0);
-            } else {
-              // Small delay to prevent buffer overflow
-              setTimeout(sendChunk, 1);
+            // Calculate speed every 200ms
+            const currentTime = Date.now();
+            if (currentTime - lastProgressTime >= 200) {
+              const timeDiff = (currentTime - lastProgressTime) / 1000;
+              const dataDiff = offset - lastOffset;
+              const speed = dataDiff / timeDiff;
+              setTransferSpeed(speed);
+              lastProgressTime = currentTime;
+              lastOffset = offset;
             }
-          } catch (error) {
-            console.error('Error sending chunk:', error);
+          }
+
+          // Continue sending immediately if not complete
+          if (offset < totalSize) {
+            // Use requestAnimationFrame for smooth, fast iteration
+            requestAnimationFrame(sendChunk);
+          } else {
+            // Final EOF
+            dc.send('EOF');
+            setTransferProgress(100);
+            setTransferSpeed(0);
+            socket.emit('transfer-complete', { session: currentSession });
             setIsTransferring(false);
           }
         };
@@ -312,6 +317,7 @@ export default function Sender() {
     setIsTransferring(false);
     setConnectedDevices([]);
     setTransferProgress(0);
+    setTransferSpeed(0);
     setCurrentFile(null);
     setLinkCopied(false);
     setSessionIdCopied(false);
@@ -620,6 +626,7 @@ export default function Sender() {
             </div>
             <div className="progress-sub">
               Size: {formatFileSize(currentFile.size)} • {transferProgress}% complete
+              {transferSpeed > 0 && ` • ${formatFileSize(transferSpeed)}/s`}
             </div>
             <div className="progress-bar">
               <div className="progress-inner" style={{ width: `${transferProgress}%` }}></div>
