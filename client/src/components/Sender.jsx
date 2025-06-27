@@ -28,7 +28,8 @@ export default function Sender() {
     const session = Math.random().toString(36).substring(2, 8);
     setSessionId(session);
     // Include the base path for GitHub Pages deployment
-    const baseUrl = import.meta.env.PROD 
+    const isGitHubPages = window.location.hostname === 'amangulia4610.github.io';
+    const baseUrl = isGitHubPages 
       ? `${window.location.origin}/file-sharing`
       : window.location.origin;
     setQrCode(`${baseUrl}/receive/${session}`);
