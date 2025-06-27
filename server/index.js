@@ -17,6 +17,8 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const corsOptions = {
   origin: NODE_ENV === 'production' 
     ? [
+        'https://thefileshare.com',  // Custom domain
+        'https://www.thefileshare.com',  // WWW version
         /\.github\.io$/,  // Allow any GitHub Pages domain
         /localhost/,      // Allow localhost for testing
         /127\.0\.0\.1/    // Allow local IP testing
