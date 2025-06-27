@@ -1234,38 +1234,3 @@ body::before {
     gap: 0.75rem;
   }
 }
-
-/* Session controls styling */
-.session-controls {
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-top: 20px;
-}
-
-.session-controls .btn {
-  flex: 1;
-  min-width: 180px;
-  max-width: 250px;
-}
-
-.btn-secondary {
-  background: rgba(108, 117, 125, 0.1);
-  color: var(--text-color);
-  border: 1px solid rgba(108, 117, 125, 0.3);
-  backdrop-filter: blur(10px);
-}
-
-.btn-secondary:hover {
-  background: rgba(108, 117, 125, 0.2);
-  border-color: rgba(108, 117, 125, 0.5);
-  transform: translateY(-2px);
-}
-
-.btn-small {
-  padding: 8px 16px;
-  font-size: 0.9em;
-  margin-top: 15px;
-  align-self: center;
-}

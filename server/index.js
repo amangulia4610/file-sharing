@@ -116,6 +116,11 @@ io.on('connection', (socket) => {
     socket.to(session).emit('transfer-complete');
   });
 
+  socket.on('verify-session', ({ sessionId }) => {
+    const exists = sessions[sessionId] && sessions[sessionId].devices.length > 0;
+    socket.emit('session-verified', { exists, sessionId });
+  });
+
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
     // Clean up sessions
