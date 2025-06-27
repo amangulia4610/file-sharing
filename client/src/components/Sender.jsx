@@ -3,8 +3,9 @@
 import { useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import io from 'socket.io-client';
+import config from '../config.js';
 
-const socket = io('http://10.0.0.15:4000');
+const socket = io(config.SOCKET_URL);
 
 export default function Sender() {
   const fileInputRef = useRef();
