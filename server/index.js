@@ -28,18 +28,28 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+// Health check route
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'Server is running', 
+    message: 'File sharing server is active',
+    env: NODE_ENV,
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', uptime: process.uptime() });
+});
+
 const io = socketIo(server, {
   cors: corsOptions,
 });
 
 // Serve static files from the React app build in production
 if (NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/dist')));
-  
-  // Catch all handler: send back React's index.html file for any non-API routes
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-  });
+  // Note: Client is served from GitHub Pages, not from this server
+  console.log('Production mode: Client served from GitHub Pages');
 }
 
 const sessions = {};
