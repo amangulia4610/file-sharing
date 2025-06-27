@@ -27,7 +27,11 @@ export default function Sender() {
   const createSession = () => {
     const session = Math.random().toString(36).substring(2, 8);
     setSessionId(session);
-    setQrCode(`${window.location.origin}/receive/${session}`);
+    // Include the base path for GitHub Pages deployment
+    const baseUrl = import.meta.env.PROD 
+      ? `${window.location.origin}/file-sharing`
+      : window.location.origin;
+    setQrCode(`${baseUrl}/receive/${session}`);
     socket.emit('join', { session, deviceInfo: getDeviceInfo() });
 
     socket.on('device-joined', ({ device }) => {
