@@ -9,7 +9,7 @@ const socket = io(config.SOCKET_URL);
 
 export default function Receiver() {
   const { session } = useParams();
-  const [status, setStatus] = useState('Connecting...');
+  const [status, setStatus] = useState('Connecting to WiFi session...');
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [transferInfo, setTransferInfo] = useState(null);
 
@@ -34,21 +34,21 @@ export default function Receiver() {
     let originalFileName = 'received_file';
 
     socket.emit('join', { session, deviceInfo: getDeviceInfo() });
-    setStatus('Joined session, waiting for sender...');
+    setStatus('Joined WiFi session, waiting for sender...');
 
     socket.on('transfer-start', ({ fileName, fileSize }) => {
       setTransferInfo({ fileName, fileSize });
-      setStatus(`Receiving ${fileName}...`);
+      setStatus(`Receiving via WiFi: ${fileName}...`);
       totalSize = fileSize;
     });
 
     socket.on('transfer-progress', ({ progress }) => {
       setDownloadProgress(progress);
-      setStatus(`Receiving... ${progress}%`);
+      setStatus(`Receiving via WiFi... ${progress}%`);
     });
 
     socket.on('transfer-complete', () => {
-      setStatus('Transfer completed!');
+      setStatus('WiFi transfer completed!');
     });
 
     pc.ondatachannel = (event) => {
@@ -152,13 +152,14 @@ export default function Receiver() {
   return (
     <div className="receiver-container">
       <div className="receiver-box">
-        <h1 className="receiver-title">📥 P2P File Receiver</h1>
+        <h1 className="receiver-title">📥 The File Share - Receiver</h1>
+        <p className="receiver-subtitle">📶 Receiving files via WiFi connection</p>
         <p className="receiver-session">Session: <span>{session}</span></p>
         <p className="receiver-status">{status}</p>
 
         {transferInfo && (
           <div className="info-box">
-            <div className="info-title">Incoming File</div>
+            <div className="info-title">📡 Incoming File via WiFi</div>
             <p className="info-text">📄 {transferInfo.fileName}</p>
             <p className="info-subtext">Size: {(transferInfo.fileSize / 1024 / 1024).toFixed(2)} MB</p>
           </div>

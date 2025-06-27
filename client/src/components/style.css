@@ -116,6 +116,14 @@ body::before {
   letter-spacing: -0.02em;
 }
 
+.receiver-subtitle {
+  text-align: center;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1.5rem;
+  font-weight: 400;
+}
+
 .sender-subtext,
 .receiver-status {
   text-align: center;
@@ -243,6 +251,27 @@ body::before {
   border-radius: 20px;
   margin-bottom: 1.5rem;
   backdrop-filter: blur(15px);
+}
+
+.receiver-hint {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 16px;
+  padding: 1rem;
+  margin-top: 1.5rem;
+  backdrop-filter: blur(10px);
+}
+
+.hint-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.hint-text strong {
+  color: #ffffff;
+  font-weight: 600;
 }
 
 /* Enhanced Instructions */

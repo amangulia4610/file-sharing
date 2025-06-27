@@ -22,12 +22,8 @@ export default function Sender() {
   // Tab system states
   const [activeTab, setActiveTab] = useState('send'); // 'send' or 'receive'
   
-  // Receiver mode states
+  // Receiver mode states (simplified for input only)
   const [receiverSessionId, setReceiverSessionId] = useState('');
-  const [receiverStatus, setReceiverStatus] = useState('');
-  const [downloadProgress, setDownloadProgress] = useState(0);
-  const [receivedFile, setReceivedFile] = useState(null);
-  const [isReceiving, setIsReceiving] = useState(false);
 
   const getDeviceInfo = () => ({
     type: 'sender',
@@ -217,129 +213,33 @@ export default function Sender() {
     if (tab === 'send') {
       // Reset receiver states when switching to send
       setReceiverSessionId('');
-      setReceiverStatus('');
-      setDownloadProgress(0);
-      setReceivedFile(null);
-      setIsReceiving(false);
     } else {
       // Reset sender states when switching to receive
       resetSession();
     }
   };
 
-  // Receiver functionality
+  // Receiver functionality - redirect to proper receiver page
   const joinReceiveSession = () => {
     if (!receiverSessionId.trim()) {
       alert('Please enter a session ID');
       return;
     }
 
-    setIsReceiving(true);
-    setReceiverStatus('Connecting to session...');
-    
-    const pc = new RTCPeerConnection({
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-      ]
-    });
-
-    let chunks = [];
-    let totalSize = 0;
-    let receivedSize = 0;
-    let originalFileName = 'received_file';
-
-    socket.emit('join', { session: receiverSessionId, deviceInfo: getDeviceInfo() });
-    setReceiverStatus('Joined session, waiting for sender...');
-
-    socket.on('transfer-start', ({ fileName, fileSize }) => {
-      setReceivedFile({ fileName, fileSize });
-      setReceiverStatus(`Receiving ${fileName}...`);
-      totalSize = fileSize;
-    });
-
-    socket.on('transfer-progress', ({ progress }) => {
-      setDownloadProgress(progress);
-      setReceiverStatus(`Receiving... ${progress}%`);
-    });
-
-    socket.on('transfer-complete', () => {
-      setReceiverStatus('Transfer complete! Processing file...');
-      setTimeout(() => {
-        const blob = new Blob(chunks);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = originalFileName;
-        a.click();
-        URL.revokeObjectURL(url);
-        setReceiverStatus('File downloaded successfully!');
-        setIsReceiving(false);
-      }, 1000);
-    });
-
-    socket.on('offer', async ({ offer }) => {
-      await pc.setRemoteDescription(new RTCSessionDescription(offer));
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      socket.emit('answer', { session: receiverSessionId, answer });
-    });
-
-    socket.on('candidate', async ({ candidate }) => {
-      await pc.addIceCandidate(new RTCIceCandidate(candidate));
-    });
-
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        socket.emit('candidate', { session: receiverSessionId, candidate: event.candidate });
-      }
-    };
-
-    pc.ondatachannel = (event) => {
-      const dc = event.channel;
-      dc.onmessage = (event) => {
-        if (typeof event.data === 'string') {
-          if (event.data === 'EOF') {
-            setReceiverStatus('Transfer complete!');
-            return;
-          }
-          try {
-            const metadata = JSON.parse(event.data);
-            if (metadata.type === 'filename') {
-              originalFileName = metadata.name;
-            }
-          } catch (e) {
-            // Not JSON, ignore
-          }
-        } else {
-          chunks.push(event.data);
-          receivedSize += event.data.byteLength;
-          const progress = Math.round((receivedSize / totalSize) * 100);
-          setDownloadProgress(progress);
-        }
-      };
-    };
+    // Redirect to the proper receiver URL
+    const currentUrl = new URL(window.location.href);
+    const receiverUrl = `${currentUrl.origin}/receive/${receiverSessionId.trim()}`;
+    window.location.href = receiverUrl;
   };
 
   const resetReceiveMode = () => {
     setReceiverSessionId('');
-    setReceiverStatus('');
-    setDownloadProgress(0);
-    setReceivedFile(null);
-    setIsReceiving(false);
-    if (peerConnection) peerConnection.close();
-    setPeerConnection(null);
-    socket.off('transfer-start');
-    socket.off('transfer-progress');
-    socket.off('transfer-complete');
-    socket.off('offer');
-    socket.off('candidate');
   };
 
   return (
     <div className="sender-container">
       <div className="sender-box">
-        <h1 className="sender-title">� File Share Hub</h1>
+        <h1 className="sender-title">📁 The File Share</h1>
         
         {/* Tab Navigation */}
         <div className="tab-navigation">
@@ -347,13 +247,13 @@ export default function Sender() {
             className={`tab-btn ${activeTab === 'send' ? 'active' : ''}`}
             onClick={() => switchTab('send')}
           >
-            �📤 Send File
+            📤 Send File via WiFi
           </button>
           <button 
             className={`tab-btn ${activeTab === 'receive' ? 'active' : ''}`}
             onClick={() => switchTab('receive')}
           >
-            📥 Receive File
+            📥 Receive File via WiFi
           </button>
         </div>
 
@@ -363,33 +263,37 @@ export default function Sender() {
             {!sessionId ? (
           <>
             <p className="sender-subtext">
-              Share files instantly and securely across devices using peer-to-peer technology.
+              Share files instantly via WiFi using The File Share. Connect all devices to the same WiFi network for seamless file sharing.
             </p>
             
             <div className="instructions">
               <div className="instructions-title">
-                🎯 How to Use
+                🎯 How to Send Files via WiFi
               </div>
               <ul className="instructions-list">
                 <li>
                   <span className="step-number">1</span>
-                  Click "Create Session" to start a secure connection
+                  Ensure both devices are connected to the same WiFi network
                 </li>
                 <li>
                   <span className="step-number">2</span>
-                  Select or drag & drop your file into the upload area
+                  Click "Create Session" to start a secure connection
                 </li>
                 <li>
                   <span className="step-number">3</span>
-                  Share the QR code or link with the receiving device
+                  Select or drag & drop your file into the upload area
                 </li>
                 <li>
                   <span className="step-number">4</span>
-                  Wait for the receiver to connect, then hit "Send File"
+                  Share the QR code or link with the receiving device
                 </li>
                 <li>
                   <span className="step-number">5</span>
-                  Files transfer directly between devices - no cloud storage!
+                  Wait for the receiver to connect, then hit "Send File"
+                </li>
+                <li>
+                  <span className="step-number">6</span>
+                  Files transfer directly via WiFi - no cloud storage needed!
                 </li>
               </ul>
             </div>
@@ -449,10 +353,10 @@ export default function Sender() {
                 {isTransferring ? (
                   <>
                     <span className="loading"></span>
-                    Sending...
+                    Sending via WiFi...
                   </>
                 ) : (
-                  '🚀 Send File'
+                  '🚀 Send File via WiFi'
                 )}
               </button>
               <button onClick={resetSession} className="btn btn-danger">
@@ -466,17 +370,17 @@ export default function Sender() {
         {sessionId && (
           <div className="info-box">
             <div className="info-title">
-              🌐 Connected Devices ({connectedDevices.length})
+              🌐 WiFi Connected Devices ({connectedDevices.length})
             </div>
             {connectedDevices.length === 0 ? (
               <p className="info-text">
-                Waiting for devices to connect... Share the QR code below!
+                Waiting for devices to connect via WiFi... Share the QR code below!
               </p>
             ) : (
               <ul className="info-list">
                 {connectedDevices.map((device, i) => (
                   <li key={device.id}>
-                    📱 {device.deviceType === 'mobile' ? 'Mobile' : 'Desktop'} Device #{i + 1}
+                    📱 {device.deviceType === 'mobile' ? 'Mobile' : 'Desktop'} Device #{i + 1} (WiFi)
                   </li>
                 ))}
               </ul>
@@ -488,7 +392,7 @@ export default function Sender() {
         {isTransferring && currentFile && (
           <div className="progress-box">
             <div className="progress-title">
-              📁 Sending: {currentFile.name}
+              📁 Sending via WiFi: {currentFile.name}
             </div>
             <div className="progress-sub">
               Size: {formatFileSize(currentFile.size)} • {transferProgress}% complete
@@ -504,7 +408,7 @@ export default function Sender() {
         {qrCode && (
           <div className="qr-box">
             <p className="qr-text">
-              📱 Scan this QR code on the receiving device:
+              📱 Scan this QR code on the receiving device (same WiFi network):
             </p>
             <div className="qr-image">
               <QRCodeSVG value={qrCode} size={180} />
@@ -533,102 +437,81 @@ export default function Sender() {
         {activeTab === 'receive' && (
           <>
             <p className="sender-subtext">
-              Enter a session ID to connect and receive files from another device.
+              Enter a session ID to connect and receive files from another device on the same WiFi network.
             </p>
             
             <div className="instructions">
               <div className="instructions-title">
-                🎯 How to Receive Files
+                🎯 How to Receive Files via WiFi
               </div>
               <ul className="instructions-list">
                 <li>
                   <span className="step-number">1</span>
-                  Get the session ID from the sender (QR code or shared link)
+                  Make sure you're connected to the same WiFi as the sender
                 </li>
                 <li>
                   <span className="step-number">2</span>
-                  Enter the 6-character session ID below
+                  Get the session ID from the sender (QR code or shared link)
                 </li>
                 <li>
                   <span className="step-number">3</span>
-                  Click "Join Session" to connect to the sender
+                  Enter the 6-character session ID below
                 </li>
                 <li>
                   <span className="step-number">4</span>
-                  Wait for the sender to start the file transfer
+                  Click "Join Session" to be redirected to the receiver page
                 </li>
                 <li>
                   <span className="step-number">5</span>
+                  Wait for the sender to start the WiFi file transfer
+                </li>
+                <li>
+                  <span className="step-number">6</span>
                   Your file will download automatically when complete
                 </li>
               </ul>
             </div>
 
-            {!isReceiving ? (
-              <div className="receiver-input-section">
-                <div className="input-group">
-                  <label htmlFor="sessionInput" className="input-label">
-                    📋 Session ID
-                  </label>
-                  <input
-                    id="sessionInput"
-                    type="text"
-                    value={receiverSessionId}
-                    onChange={(e) => setReceiverSessionId(e.target.value.toUpperCase())}
-                    placeholder="Enter 6-character session ID"
-                    className="session-input"
-                    maxLength={6}
-                  />
-                </div>
-                
-                <div className="btn-group">
-                  <button 
-                    onClick={joinReceiveSession}
-                    disabled={!receiverSessionId.trim()}
-                    className={`btn ${!receiverSessionId.trim() ? 'btn-disabled' : 'btn-primary'}`}
-                  >
-                    🔗 Join Session
-                  </button>
-                  <button onClick={resetReceiveMode} className="btn btn-danger">
-                    🔁 Clear
-                  </button>
-                </div>
+            <div className="receiver-input-section">
+              <div className="input-group">
+                <label htmlFor="sessionInput" className="input-label">
+                  📋 Session ID
+                </label>
+                <input
+                  id="sessionInput"
+                  type="text"
+                  value={receiverSessionId}
+                  onChange={(e) => setReceiverSessionId(e.target.value.toUpperCase())}
+                  placeholder="Enter 6-character session ID"
+                  className="session-input"
+                  maxLength={6}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && receiverSessionId.trim()) {
+                      joinReceiveSession();
+                    }
+                  }}
+                />
               </div>
-            ) : (
-              <div className="receiver-status-section">
-                <div className="receiver-info">
-                  <div className="info-title">
-                    📡 Connection Status
-                  </div>
-                  <p className="info-text">{receiverStatus}</p>
-                  {receivedFile && (
-                    <div className="file-info">
-                      <div className="file-icon">📄</div>
-                      <div className="file-details">
-                        <h4>{receivedFile.fileName}</h4>
-                        <p>Size: {formatFileSize(receivedFile.fileSize)}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {downloadProgress > 0 && (
-                  <div className="progress-box">
-                    <div className="progress-title">
-                      📥 Receiving: {receivedFile?.fileName || 'File'}
-                    </div>
-                    <div className="progress-bar">
-                      <div className="progress-inner" style={{ width: `${downloadProgress}%` }}></div>
-                    </div>
-                    <div className="progress-text">{downloadProgress}%</div>
-                  </div>
-                )}
-
+              
+              <div className="btn-group">
+                <button 
+                  onClick={joinReceiveSession}
+                  disabled={!receiverSessionId.trim()}
+                  className={`btn ${!receiverSessionId.trim() ? 'btn-disabled' : 'btn-primary'}`}
+                >
+                  🔗 Join WiFi Session
+                </button>
                 <button onClick={resetReceiveMode} className="btn btn-danger">
-                  ❌ Cancel Reception
+                  🔁 Clear
                 </button>
               </div>
-            )}
+              
+              <div className="receiver-hint">
+                <p className="hint-text">
+                  💡 <strong>WiFi Required:</strong> Both devices must be on the same WiFi network. You'll be redirected to a dedicated receiver page to track transfer progress.
+                </p>
+              </div>
+            </div>
           </>
         )}
       </div>
