@@ -32,7 +32,15 @@ export default function Sender() {
     const baseUrl = isGitHubPages 
       ? `${window.location.origin}/file-sharing`
       : window.location.origin;
-    setQrCode(`${baseUrl}/receive/${session}`);
+    const qrUrl = `${baseUrl}/receive/${session}`;
+    console.log('Debug QR Code generation:', {
+      hostname: window.location.hostname,
+      isGitHubPages,
+      origin: window.location.origin,
+      baseUrl,
+      qrUrl
+    });
+    setQrCode(qrUrl);
     socket.emit('join', { session, deviceInfo: getDeviceInfo() });
 
     socket.on('device-joined', ({ device }) => {
