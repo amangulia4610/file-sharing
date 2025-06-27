@@ -1,0 +1,13 @@
+{
+  "name": "p2p-file-share-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "qrcode.react": "^4.2.0",
+    "react-router-dom": "^7.6.2",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1"
+  }
+}
