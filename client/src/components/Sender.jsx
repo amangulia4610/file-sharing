@@ -29,7 +29,7 @@ export default function Sender() {
     setSessionId(session);
     // Build the QR URL using current location
     const currentUrl = new URL(window.location.href);
-    const qrUrl = `${currentUrl.origin}${currentUrl.pathname.replace(/\/$/, '')}/file-sharing/receive/${session}`;
+    const qrUrl = `${currentUrl.origin}${currentUrl.pathname.replace(/\/$/, '')}/receive/${session}`;
     console.log('Debug QR Code generation:', {
       currentHref: window.location.href,
       origin: currentUrl.origin,
