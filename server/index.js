@@ -67,20 +67,37 @@ io.on('connection', (socket) => {
       sessions[session] = { devices: [] };
     }
     
+    // Check if device already exists in session to prevent duplicates
+    const existingDeviceIndex = sessions[session].devices.findIndex(device => device.id === socket.id);
+    
     const device = {
       id: socket.id,
       type: deviceInfo?.type || 'unknown',
+      deviceType: deviceInfo?.deviceType || 'unknown',
+      deviceName: deviceInfo?.deviceName || 'Unknown Device',
+      deviceIcon: deviceInfo?.deviceIcon || '💻',
+      osName: deviceInfo?.osName || 'Unknown OS',
       userAgent: deviceInfo?.userAgent || 'unknown',
-      timestamp: new Date()
+      screenResolution: deviceInfo?.screenResolution || 'unknown',
+      language: deviceInfo?.language || 'unknown',
+      timezone: deviceInfo?.timezone || 'unknown',
+      timestamp: deviceInfo?.timestamp || new Date().toISOString()
     };
     
-    sessions[session].devices.push(device);
-    console.log(`Client ${socket.id} (${device.type}) joined session ${session}`);
+    if (existingDeviceIndex >= 0) {
+      // Update existing device info
+      sessions[session].devices[existingDeviceIndex] = device;
+      console.log(`Client ${socket.id} (${device.type}) updated in session ${session}`);
+    } else {
+      // Add new device
+      sessions[session].devices.push(device);
+      console.log(`Client ${socket.id} (${device.type}) joined session ${session}`);
+      
+      // Notify all OTHER devices in session about new device (don't send to self)
+      socket.to(session).emit('device-joined', { device, totalDevices: sessions[session].devices.length });
+    }
     
-    // Notify all devices in session about new device
-    socket.to(session).emit('device-joined', { device, totalDevices: sessions[session].devices.length });
-    
-    // Send current devices list to the new device
+    // Send current devices list to the connecting device
     socket.emit('session-info', { 
       devices: sessions[session].devices,
       totalDevices: sessions[session].devices.length 

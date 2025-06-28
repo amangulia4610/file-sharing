@@ -216,11 +216,10 @@ export default function Sender() {
     const dc = pc.createDataChannel('file', {
       // Optimize for maximum speed and reliability
       ordered: false, // Allow out-of-order delivery for speed
-      maxRetransmits: 0, // No retransmissions for speed
-      protocol: 'tcp' // Use TCP-like reliability without retransmits
+      maxRetransmits: 0 // No retransmissions for speed
     });
 
-    socket.emit('join', { session: currentSession });
+    // Only join once - remove the duplicate join call
 
     pc.onicecandidate = (event) => {
       if (event.candidate) socket.emit('candidate', { session: currentSession, candidate: event.candidate });
@@ -275,17 +274,17 @@ export default function Sender() {
             const progress = Math.round((offset / totalSize) * 100);
             setTransferProgress(progress);
             socket.emit('transfer-progress', { session: currentSession, progress });
-            
-            // Calculate speed every 200ms
-            const currentTime = Date.now();
-            if (currentTime - lastProgressTime >= 200) {
-              const timeDiff = (currentTime - lastProgressTime) / 1000;
-              const dataDiff = offset - lastOffset;
-              const speed = dataDiff / timeDiff;
-              setTransferSpeed(speed);
-              lastProgressTime = currentTime;
-              lastOffset = offset;
-            }
+          }
+          
+          // Calculate speed every 200ms
+          const currentTime = Date.now();
+          if (currentTime - lastProgressTime >= 200) {
+            const timeDiff = (currentTime - lastProgressTime) / 1000;
+            const dataDiff = offset - lastOffset;
+            const speed = dataDiff / timeDiff;
+            setTransferSpeed(speed);
+            lastProgressTime = currentTime;
+            lastOffset = offset;
           }
 
           // Continue sending immediately if not complete
