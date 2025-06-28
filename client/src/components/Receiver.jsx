@@ -102,9 +102,14 @@ export default function Receiver() {
     console.log('Verifying session:', sessionId);
     socket.emit('verify-session', { sessionId });
     
+    let timeoutId;
+    let callbackCalled = false;
+    
     const onSessionVerified = ({ exists, sessionId: verifiedSessionId }) => {
       console.log('Session verification result:', { exists, sessionId: verifiedSessionId });
-      if (verifiedSessionId === sessionId) {
+      if (verifiedSessionId === sessionId && !callbackCalled) {
+        callbackCalled = true;
+        clearTimeout(timeoutId);
         socket.off('session-verified', onSessionVerified);
         callback(exists);
       }
@@ -113,19 +118,30 @@ export default function Receiver() {
     socket.on('session-verified', onSessionVerified);
     
     // Timeout after 10 seconds (increased from 5)
-    setTimeout(() => {
-      console.log('Session verification timeout for:', sessionId);
-      socket.off('session-verified', onSessionVerified);
-      callback(false);
+    timeoutId = setTimeout(() => {
+      if (!callbackCalled) {
+        console.log('Session verification timeout for:', sessionId);
+        callbackCalled = true;
+        socket.off('session-verified', onSessionVerified);
+        callback(false);
+      }
     }, 10000);
   };
 
   useEffect(() => {
     console.log('Receiver useEffect triggered for session:', session);
     
+    let isConnecting = false;
+    let cleanupFunctions = [];
+    
     // Function to attempt connection with retries
     const attemptConnection = (retryCount = 0) => {
       const maxRetries = 3;
+      
+      if (isConnecting) {
+        console.log('Connection already in progress, skipping attempt');
+        return;
+      }
       
       console.log(`Attempting connection, retry ${retryCount}/${maxRetries}`);
       
@@ -143,7 +159,13 @@ export default function Receiver() {
           }
         }
 
+        if (isConnecting) {
+          console.log('Connection setup already in progress, skipping');
+          return;
+        }
+
         console.log('Session found, proceeding with connection setup');
+        isConnecting = true;
         setupConnection();
       });
     };
@@ -155,6 +177,9 @@ export default function Receiver() {
           { urls: 'stun:stun1.l.google.com:19302' }
         ]
       });
+
+      // Add cleanup function
+      cleanupFunctions.push(() => pc.close());
 
       let chunks = [];
       let totalSize = 0;
@@ -168,190 +193,209 @@ export default function Receiver() {
       setStatus('Joined WiFi session, waiting for sender...');
       setConnectionState('waiting');
 
-      socket.on('transfer-start', ({ fileName, fileSize }) => {
+      const handleTransferStart = ({ fileName, fileSize }) => {
         setTransferInfo({ fileName, fileSize });
         setStatus(`Receiving via WiFi: ${fileName}...`);
         setConnectionState('receiving');
         totalSize = fileSize;
         startTime = Date.now();
         lastProgressTime = startTime;
+      };
+
+      const handleTransferProgress = ({ progress }) => {
+        setDownloadProgress(progress);
+        setStatus(`Receiving via WiFi... ${progress}%`);
+        
+        // Calculate speed and time remaining
+        const now = Date.now();
+        const currentReceivedSize = (progress / 100) * totalSize;
+        
+        if (lastProgressTime && now - lastProgressTime > 500) { // Update every 500ms
+          const timeDiff = (now - lastProgressTime) / 1000;
+          const sizeDiff = currentReceivedSize - lastReceivedSize;
+          const speed = sizeDiff / timeDiff;
+          
+          setDownloadSpeed(speed);
+          
+          if (speed > 0) {
+            const remainingBytes = totalSize - currentReceivedSize;
+            const timeRem = remainingBytes / speed;
+            setTimeRemaining(timeRem);
+          }
+          
+          lastProgressTime = now;
+          lastReceivedSize = currentReceivedSize;
+        }
+      };
+
+      const handleTransferComplete = () => {
+        setStatus('WiFi transfer completed!');
+        setConnectionState('completed');
+        setDownloadProgress(100);
+      };
+
+      socket.on('transfer-start', handleTransferStart);
+      socket.on('transfer-progress', handleTransferProgress);
+      socket.on('transfer-complete', handleTransferComplete);
+
+      // Add cleanup functions
+      cleanupFunctions.push(() => {
+        socket.off('transfer-start', handleTransferStart);
+        socket.off('transfer-progress', handleTransferProgress);
+        socket.off('transfer-complete', handleTransferComplete);
       });
 
-    socket.on('transfer-progress', ({ progress }) => {
-      setDownloadProgress(progress);
-      setStatus(`Receiving via WiFi... ${progress}%`);
-      
-      // Calculate speed and time remaining
-      const now = Date.now();
-      const currentReceivedSize = (progress / 100) * totalSize;
-      
-      if (lastProgressTime && now - lastProgressTime > 500) { // Update every 500ms
-        const timeDiff = (now - lastProgressTime) / 1000;
-        const sizeDiff = currentReceivedSize - lastReceivedSize;
-        const speed = sizeDiff / timeDiff;
-        
-        setDownloadSpeed(speed);
-        
-        if (speed > 0) {
-          const remainingBytes = totalSize - currentReceivedSize;
-          const timeRem = remainingBytes / speed;
-          setTimeRemaining(timeRem);
-        }
-        
-        lastProgressTime = now;
-        lastReceivedSize = currentReceivedSize;
-      }
-    });
+      pc.ondatachannel = (event) => {
+        const dc = event.channel;
+        setStatus('Connected! Receiving file...');
 
-    socket.on('transfer-complete', () => {
-      setStatus('WiFi transfer completed!');
-      setConnectionState('completed');
-      setDownloadProgress(100);
-    });
+        dc.onopen = () => {
+          setStatus('Data channel open, ready to receive...');
+        };
 
-    pc.ondatachannel = (event) => {
-      const dc = event.channel;
-      setStatus('Connected! Receiving file...');
-
-      dc.onopen = () => {
-        setStatus('Data channel open, ready to receive...');
-      };
-
-      dc.onmessage = (e) => {
-        if (typeof e.data === 'string') {
-          if (e.data === 'EOF') {
-            // Create and download file
-            const blob = new Blob(chunks);
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = originalFileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            setStatus('Download complete!');
-            setDownloadProgress(100);
-            setConnectionState('completed');
-          } else {
-            try {
-              const message = JSON.parse(e.data);
-              if (message.type === 'filename') {
-                originalFileName = message.name;
-                setStatus(`Receiving ${originalFileName}...`);
-                setConnectionState('receiving');
+        dc.onmessage = (e) => {
+          if (typeof e.data === 'string') {
+            if (e.data === 'EOF') {
+              // Create and download file
+              const blob = new Blob(chunks);
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = originalFileName;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+              
+              setStatus('Download complete!');
+              setDownloadProgress(100);
+              setConnectionState('completed');
+            } else {
+              try {
+                const message = JSON.parse(e.data);
+                if (message.type === 'filename') {
+                  originalFileName = message.name;
+                  setStatus(`Receiving ${originalFileName}...`);
+                  setConnectionState('receiving');
+                }
+              } catch {
+                // ignore non-JSON strings
               }
-            } catch {
-              // ignore non-JSON strings
             }
-          }
-        } else {
-          // Handle binary data chunks
-          chunks.push(e.data);
-          receivedSize += e.data.byteLength || e.data.size || 0;
-          
-          // Update progress and speed
-          const currentTime = Date.now();
-          if (startTime === null) {
-            startTime = currentTime;
-            lastProgressTime = currentTime;
-          }
-          
-          // Calculate download speed every 500ms
-          if (currentTime - lastProgressTime >= 500) {
-            const timeDiff = (currentTime - lastProgressTime) / 1000;
-            const sizeDiff = receivedSize - lastReceivedSize;
-            const speed = sizeDiff / timeDiff;
-            
-            setDownloadSpeed(speed);
-            lastProgressTime = currentTime;
-            lastReceivedSize = receivedSize;
-            
-            // Calculate time remaining
-            if (totalSize > 0 && speed > 0) {
-              const remainingBytes = totalSize - receivedSize;
-              const timeRemaining = remainingBytes / speed;
-              setTimeRemaining(timeRemaining);
-            }
-          }
-          
-          // Update progress
-          const progress = totalSize > 0 ? (receivedSize / totalSize) * 100 : 0;
-          setDownloadProgress(Math.round(progress));
-          
-          // Update status
-          if (totalSize > 0) {
-            const received = formatFileSize(receivedSize);
-            const total = formatFileSize(totalSize);
-            const speedText = downloadSpeed > 0 ? ` • ${formatFileSize(downloadSpeed)}/s` : '';
-            setStatus(`Receiving ${originalFileName}... ${received}/${total} (${Math.round(progress)}%)${speedText}`);
           } else {
-            setStatus(`Receiving ${originalFileName}... ${formatFileSize(receivedSize)} received`);
+            // Handle binary data chunks
+            chunks.push(e.data);
+            receivedSize += e.data.byteLength || e.data.size || 0;
+            
+            // Update progress and speed
+            const currentTime = Date.now();
+            if (startTime === null) {
+              startTime = currentTime;
+              lastProgressTime = currentTime;
+            }
+            
+            // Calculate download speed every 500ms
+            if (currentTime - lastProgressTime >= 500) {
+              const timeDiff = (currentTime - lastProgressTime) / 1000;
+              const sizeDiff = receivedSize - lastReceivedSize;
+              const speed = sizeDiff / timeDiff;
+              
+              setDownloadSpeed(speed);
+              lastProgressTime = currentTime;
+              lastReceivedSize = receivedSize;
+              
+              // Calculate time remaining
+              if (totalSize > 0 && speed > 0) {
+                const remainingBytes = totalSize - receivedSize;
+                const timeRemaining = remainingBytes / speed;
+                setTimeRemaining(timeRemaining);
+              }
+            }
+            
+            // Update progress
+            const progress = totalSize > 0 ? (receivedSize / totalSize) * 100 : 0;
+            setDownloadProgress(Math.round(progress));
+            
+            // Update status
+            if (totalSize > 0) {
+              const received = formatFileSize(receivedSize);
+              const total = formatFileSize(totalSize);
+              const speedText = downloadSpeed > 0 ? ` • ${formatFileSize(downloadSpeed)}/s` : '';
+              setStatus(`Receiving ${originalFileName}... ${received}/${total} (${Math.round(progress)}%)${speedText}`);
+            } else {
+              setStatus(`Receiving ${originalFileName}... ${formatFileSize(receivedSize)} received`);
+            }
           }
+        };
+
+        dc.onerror = () => {
+          setStatus('Error receiving file');
+        };
+      };
+
+      pc.onicecandidate = (event) => {
+        if (event.candidate) socket.emit('candidate', { session, candidate: event.candidate });
+      };
+
+      pc.onconnectionstatechange = () => {
+        if (pc.connectionState === 'connected') {
+          setStatus('WebRTC connected, waiting for data...');
+        } else if (pc.connectionState === 'failed') {
+          setStatus('Connection failed');
         }
       };
 
-      dc.onerror = () => {
-        setStatus('Error receiving file');
+      const handleOffer = async ({ offer }) => {
+        try {
+          setStatus('Received offer, creating answer...');
+          await pc.setRemoteDescription(new RTCSessionDescription(offer));
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          socket.emit('answer', { session, answer });
+          setStatus('Answer sent, establishing connection...');
+        } catch {
+          setStatus('Error processing offer');
+        }
       };
-    };
 
-    pc.onicecandidate = (event) => {
-      if (event.candidate) socket.emit('candidate', { session, candidate: event.candidate });
-    };
+      const handleCandidate = async ({ candidate }) => {
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch {}
+      };
 
-    pc.onconnectionstatechange = () => {
-      if (pc.connectionState === 'connected') {
-        setStatus('WebRTC connected, waiting for data...');
-      } else if (pc.connectionState === 'failed') {
-        setStatus('Connection failed');
-      }
-    };
+      const handleConnect = () => {
+        console.log('Socket connected to server');
+        setStatus('Connected to server, verifying session...');
+      };
 
-    socket.on('offer', async ({ offer }) => {
-      try {
-        setStatus('Received offer, creating answer...');
-        await pc.setRemoteDescription(new RTCSessionDescription(offer));
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        socket.emit('answer', { session, answer });
-        setStatus('Answer sent, establishing connection...');
-      } catch {
-        setStatus('Error processing offer');
-      }
-    });
+      const handleDisconnect = () => {
+        console.log('Socket disconnected from server');
+        setStatus('Disconnected from server');
+      };
 
-    socket.on('candidate', async ({ candidate }) => {
-      try {
-        await pc.addIceCandidate(new RTCIceCandidate(candidate));
-      } catch {}
-    });
+      socket.on('offer', handleOffer);
+      socket.on('candidate', handleCandidate);
+      socket.on('connect', handleConnect);
+      socket.on('disconnect', handleDisconnect);
 
-    socket.on('connect', () => {
-      console.log('Socket connected to server');
-      setStatus('Connected to server, verifying session...');
-    });
-
-    socket.on('disconnect', () => {
-      console.log('Socket disconnected from server');
-      setStatus('Disconnected from server');
-    });
-
-    return () => {
-      pc.close();
-      socket.off('offer');
-      socket.off('candidate');
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('transfer-start');
-      socket.off('transfer-progress');
-      socket.off('transfer-complete');
-    };
+      // Add cleanup functions
+      cleanupFunctions.push(() => {
+        socket.off('offer', handleOffer);
+        socket.off('candidate', handleCandidate);
+        socket.off('connect', handleConnect);
+        socket.off('disconnect', handleDisconnect);
+      });
     };
 
     // Start the connection attempt
     attemptConnection();
+
+    // Cleanup function
+    return () => {
+      isConnecting = false;
+      cleanupFunctions.forEach(cleanup => cleanup());
+    };
   }, [session]);
 
 
