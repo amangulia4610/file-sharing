@@ -1,5 +1,5 @@
 // File: client/src/components/Receiver.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import config from '../config.js';
@@ -17,6 +17,25 @@ export default function Receiver() {
   const [downloadSpeed, setDownloadSpeed] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [connectedDevices, setConnectedDevices] = useState(0);
+  
+  // Add refs to track values without causing re-renders
+  const speedCalculationRef = useRef({
+    lastUpdateTime: 0,
+    lastReceivedSize: 0,
+    updateInterval: 1000, // Update every 1 second instead of 500ms
+  });
+
+  // Memoize formatted values to prevent unnecessary recalculations
+  const formattedProgress = useMemo(() => Math.round(downloadProgress), [downloadProgress]);
+  const formattedSpeed = useMemo(() => formatSpeed(downloadSpeed), [downloadSpeed]);
+  const formattedTimeRemaining = useMemo(() => formatTime(timeRemaining), [timeRemaining]);
+  const formattedFileSize = useMemo(() => 
+    transferInfo ? formatFileSize(transferInfo.fileSize) : '', [transferInfo]
+  );
+  const formattedReceivedSize = useMemo(() => 
+    transferInfo ? formatFileSize((downloadProgress / 100) * transferInfo.fileSize) : '', 
+    [transferInfo, downloadProgress]
+  );
 
   const getDeviceInfo = () => {
     const userAgent = navigator.userAgent;
@@ -202,31 +221,44 @@ export default function Receiver() {
         lastProgressTime = startTime;
       };
 
-      const handleTransferProgress = ({ progress }) => {
-        setDownloadProgress(progress);
-        setStatus(`Receiving via WiFi... ${progress}%`);
-        
-        // Calculate speed and time remaining
+      const handleTransferProgress = useCallback(({ progress }) => {
+        // Throttle progress updates to reduce flickering
         const now = Date.now();
-        const currentReceivedSize = (progress / 100) * totalSize;
+        const { lastUpdateTime, lastReceivedSize, updateInterval } = speedCalculationRef.current;
         
-        if (lastProgressTime && now - lastProgressTime > 500) { // Update every 500ms
-          const timeDiff = (now - lastProgressTime) / 1000;
-          const sizeDiff = currentReceivedSize - lastReceivedSize;
-          const speed = sizeDiff / timeDiff;
+        // Update progress immediately but throttle other calculations
+        setDownloadProgress(progress);
+        
+        // Only update speed and time remaining every second
+        if (now - lastUpdateTime >= updateInterval) {
+          const currentReceivedSize = (progress / 100) * totalSize;
           
-          setDownloadSpeed(speed);
-          
-          if (speed > 0) {
-            const remainingBytes = totalSize - currentReceivedSize;
-            const timeRem = remainingBytes / speed;
-            setTimeRemaining(timeRem);
+          if (lastUpdateTime > 0) {
+            const timeDiff = (now - lastUpdateTime) / 1000;
+            const sizeDiff = currentReceivedSize - lastReceivedSize;
+            const speed = sizeDiff / timeDiff;
+            
+            setDownloadSpeed(speed);
+            
+            if (speed > 0) {
+              const remainingBytes = totalSize - currentReceivedSize;
+              const timeRem = remainingBytes / speed;
+              setTimeRemaining(timeRem);
+            }
           }
           
-          lastProgressTime = now;
-          lastReceivedSize = currentReceivedSize;
+          speedCalculationRef.current = {
+            ...speedCalculationRef.current,
+            lastUpdateTime: now,
+            lastReceivedSize: currentReceivedSize,
+          };
         }
-      };
+        
+        // Update status less frequently to reduce flickering
+        if (now - lastUpdateTime >= updateInterval || progress === 100) {
+          setStatus(`Receiving via WiFi... ${Math.round(progress)}%`);
+        }
+      }, [totalSize]);
 
       const handleTransferComplete = () => {
         setStatus('WiFi transfer completed!');
@@ -287,22 +319,21 @@ export default function Receiver() {
             chunks.push(e.data);
             receivedSize += e.data.byteLength || e.data.size || 0;
             
-            // Update progress and speed
+            // Update progress and speed with throttling
             const currentTime = Date.now();
             if (startTime === null) {
               startTime = currentTime;
-              lastProgressTime = currentTime;
+              speedCalculationRef.current.lastUpdateTime = currentTime;
             }
             
-            // Calculate download speed every 500ms
-            if (currentTime - lastProgressTime >= 500) {
-              const timeDiff = (currentTime - lastProgressTime) / 1000;
+            // Calculate download speed less frequently
+            const { lastUpdateTime, lastReceivedSize, updateInterval } = speedCalculationRef.current;
+            if (currentTime - lastUpdateTime >= updateInterval) {
+              const timeDiff = (currentTime - lastUpdateTime) / 1000;
               const sizeDiff = receivedSize - lastReceivedSize;
               const speed = sizeDiff / timeDiff;
               
               setDownloadSpeed(speed);
-              lastProgressTime = currentTime;
-              lastReceivedSize = receivedSize;
               
               // Calculate time remaining
               if (totalSize > 0 && speed > 0) {
@@ -310,20 +341,28 @@ export default function Receiver() {
                 const timeRemaining = remainingBytes / speed;
                 setTimeRemaining(timeRemaining);
               }
+              
+              speedCalculationRef.current = {
+                ...speedCalculationRef.current,
+                lastUpdateTime: currentTime,
+                lastReceivedSize: receivedSize,
+              };
             }
             
             // Update progress
             const progress = totalSize > 0 ? (receivedSize / totalSize) * 100 : 0;
             setDownloadProgress(Math.round(progress));
             
-            // Update status
-            if (totalSize > 0) {
-              const received = formatFileSize(receivedSize);
-              const total = formatFileSize(totalSize);
-              const speedText = downloadSpeed > 0 ? ` • ${formatFileSize(downloadSpeed)}/s` : '';
-              setStatus(`Receiving ${originalFileName}... ${received}/${total} (${Math.round(progress)}%)${speedText}`);
-            } else {
-              setStatus(`Receiving ${originalFileName}... ${formatFileSize(receivedSize)} received`);
+            // Update status less frequently to reduce flickering
+            if (currentTime - lastUpdateTime >= updateInterval || progress >= 100) {
+              if (totalSize > 0) {
+                const received = formatFileSize(receivedSize);
+                const total = formatFileSize(totalSize);
+                const speedText = downloadSpeed > 0 ? ` • ${formatSpeed(downloadSpeed)}` : '';
+                setStatus(`Receiving ${originalFileName}... ${received}/${total} (${Math.round(progress)}%)${speedText}`);
+              } else {
+                setStatus(`Receiving ${originalFileName}... ${formatFileSize(receivedSize)} received`);
+              }
             }
           }
         };
@@ -442,12 +481,12 @@ export default function Receiver() {
             <div className="file-details">
               <h3 className="file-name">{transferInfo.fileName}</h3>
               <div className="file-meta">
-                <span className="file-size">{formatFileSize(transferInfo.fileSize)}</span>
+                <span className="file-size">{formattedFileSize}</span>
                 {downloadSpeed > 0 && (
                   <>
-                    <span className="file-speed">• {formatSpeed(downloadSpeed)}</span>
+                    <span className="file-speed">• {formattedSpeed}</span>
                     {timeRemaining > 0 && downloadProgress < 100 && (
-                      <span className="file-eta">• {formatTime(timeRemaining)} remaining</span>
+                      <span className="file-eta">• {formattedTimeRemaining} remaining</span>
                     )}
                   </>
                 )}
@@ -461,20 +500,20 @@ export default function Receiver() {
           <div className="progress-section">
             <div className="progress-header">
               <span className="progress-label">Transfer Progress</span>
-              <span className="progress-percentage">{downloadProgress}%</span>
+              <span className="progress-percentage">{formattedProgress}%</span>
             </div>
             <div className="progress-bar-container">
               <div className="progress-bar">
                 <div 
                   className="progress-inner" 
-                  style={{ width: `${downloadProgress}%` }}
+                  style={{ width: `${formattedProgress}%` }}
                 ></div>
               </div>
             </div>
             {transferInfo && (
               <div className="progress-stats">
                 <span className="received-size">
-                  {formatFileSize((downloadProgress / 100) * transferInfo.fileSize)} of {formatFileSize(transferInfo.fileSize)}
+                  {formattedReceivedSize} of {formattedFileSize}
                 </span>
               </div>
             )}

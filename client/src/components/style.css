@@ -863,12 +863,14 @@ body::before {
   display: flex;
   align-items: center;
   gap: 1rem;
+  transition: all 0.3s ease;
 }
 
 .status-icon {
   font-size: 1.5rem;
   min-width: 2rem;
   text-align: center;
+  transition: transform 0.2s ease;
 }
 
 .receiver-status {
@@ -876,6 +878,10 @@ body::before {
   font-size: 1rem;
   margin: 0;
   font-weight: 500;
+  transition: all 0.2s ease;
+  /* Prevent text from jumping around */
+  line-height: 1.5;
+  min-height: 1.5em;
 }
 
 .file-info-card {
@@ -888,6 +894,7 @@ body::before {
   display: flex;
   align-items: center;
   gap: 1rem;
+  transition: all 0.3s ease;
 }
 
 .file-icon {
@@ -936,6 +943,7 @@ body::before {
   border-radius: 16px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
 }
 
 .progress-header {
@@ -949,12 +957,14 @@ body::before {
   color: #ffffff;
   font-weight: 600;
   font-size: 1rem;
+  transition: all 0.2s ease;
 }
 
 .progress-percentage {
   color: #10b981;
   font-weight: 700;
   font-size: 1.125rem;
+  transition: all 0.2s ease;
 }
 
 .progress-bar-container {
@@ -971,6 +981,7 @@ body::before {
   color: rgba(255, 255, 255, 0.8);
   font-size: 0.875rem;
   font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 .success-card {
