@@ -477,16 +477,7 @@ export default function Receiver() {
           </div>
         </div>
 
-        {/* Status Message */}
-        <div className="receiver-status-card">
-          <div className="status-icon">
-            {connectionState === 'connecting' && '⏳'}
-            {connectionState === 'waiting' && '⏰'}
-            {connectionState === 'receiving' && '📡'}
-            {connectionState === 'completed' && '✅'}
-            {connectionState === 'error' && '❌'}
-          </div>
-        </div>
+      
 
         {/* File Info Card */}
         {transferInfo && (

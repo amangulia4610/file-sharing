@@ -1218,6 +1218,161 @@ body::before {
   }
 }
 
+/* Mobile-specific fixes for visibility and contrast */
+@media (max-width: 768px) {
+  /* Ensure text is always visible on mobile */
+  .sender-title,
+  .receiver-title {
+    color: #ffffff !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  .receiver-subtitle,
+  .sender-subtext,
+  .receiver-status {
+    color: rgba(255, 255, 255, 0.95) !important;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7) !important;
+  }
+
+  /* Fix input visibility */
+  .session-input {
+    background: rgba(0, 0, 0, 0.3) !important;
+    color: #ffffff !important;
+    border: 2px solid rgba(255, 255, 255, 0.5) !important;
+  }
+
+  .session-input::placeholder {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  /* Fix info boxes and cards */
+  .info-box,
+  .progress-box,
+  .qr-box,
+  .receiver-info,
+  .receiver-progress,
+  .receiver-success,
+  .receiver-session-card,
+  .receiver-status-card,
+  .file-info-card,
+  .progress-section {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  }
+
+  /* Fix all text in cards */
+  .info-title,
+  .progress-title,
+  .receiver-title-bar,
+  .info-text,
+  .progress-sub,
+  .qr-text,
+  .receiver-text,
+  .file-name,
+  .file-meta,
+  .progress-label,
+  .progress-percentage,
+  .received-size {
+    color: #ffffff !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  /* Fix instruction text */
+  .instructions-title {
+    color: #ffffff !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  .instructions-list li {
+    color: rgba(255, 255, 255, 0.95) !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7) !important;
+  }
+
+  /* Fix hint text */
+  .hint-text {
+    color: rgba(255, 255, 255, 0.95) !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7) !important;
+  }
+
+  .hint-text strong {
+    color: #ffffff !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  /* Fix file drop zone */
+  .file-drop-text {
+    color: #ffffff !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  .file-drop-subtext {
+    color: rgba(255, 255, 255, 0.8) !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7) !important;
+  }
+
+  /* Fix session ID and labels */
+  .session-label,
+  .session-id,
+  .input-label {
+    color: #ffffff !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  /* Fix QR code area for better contrast */
+  .qr-code {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #000000 !important;
+    border: 2px solid rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Fix connection indicator text */
+  .indicator-text {
+    color: #ffffff !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  /* Fix device card text */
+  .device-title {
+    color: #ffffff !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  .detail-label,
+  .detail-value {
+    color: #ffffff !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7) !important;
+  }
+
+  /* Fix success/error card text */
+  .success-title,
+  .success-message,
+  .success-file-name,
+  .success-file-size,
+  .error-title,
+  .error-message {
+    color: #ffffff !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  /* Fix waiting and other status text */
+  .waiting-text {
+    color: #ffffff !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  /* Ensure buttons remain visible */
+  .btn {
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  /* Fix any remaining list items */
+  .info-list li {
+    color: #ffffff !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7) !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+  }
+}
+
 @media (max-width: 480px) {
   .sender-container,
   .receiver-container {
