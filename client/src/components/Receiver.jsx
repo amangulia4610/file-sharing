@@ -33,7 +33,7 @@ export default function Receiver() {
     transferInfo ? formatFileSize(transferInfo.fileSize) : '', [transferInfo]
   );
   const formattedReceivedSize = useMemo(() => 
-    transferInfo ? formatFileSize((downloadProgress / 100) * transferInfo.fileSize) : '', 
+    transferInfo && downloadProgress > 0 ? formatFileSize((downloadProgress / 100) * transferInfo.fileSize) : '', 
     [transferInfo, downloadProgress]
   );
 
@@ -221,7 +221,7 @@ export default function Receiver() {
         lastProgressTime = startTime;
       };
 
-      const handleTransferProgress = useCallback(({ progress }) => {
+      const handleTransferProgress = ({ progress }) => {
         // Throttle progress updates to reduce flickering
         const now = Date.now();
         const { lastUpdateTime, lastReceivedSize, updateInterval } = speedCalculationRef.current;
@@ -230,7 +230,7 @@ export default function Receiver() {
         setDownloadProgress(progress);
         
         // Only update speed and time remaining every second
-        if (now - lastUpdateTime >= updateInterval) {
+        if (now - lastUpdateTime >= updateInterval && totalSize > 0) {
           const currentReceivedSize = (progress / 100) * totalSize;
           
           if (lastUpdateTime > 0) {
@@ -258,7 +258,7 @@ export default function Receiver() {
         if (now - lastUpdateTime >= updateInterval || progress === 100) {
           setStatus(`Receiving via WiFi... ${Math.round(progress)}%`);
         }
-      }, [totalSize]);
+      };
 
       const handleTransferComplete = () => {
         setStatus('WiFi transfer completed!');
