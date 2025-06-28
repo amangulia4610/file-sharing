@@ -174,13 +174,26 @@ export default function Sender() {
     socket.emit('join', { session, deviceInfo: getDeviceInfo() });
 
     socket.on('device-joined', ({ device }) => {
-      setConnectedDevices(prev => [...prev, device]);
+      console.log('Device joined:', device);
+      setConnectedDevices(prev => {
+        // Prevent duplicate devices
+        const exists = prev.some(d => d.id === device.id);
+        if (exists) return prev;
+        return [...prev, device];
+      });
     });
     socket.on('device-left', ({ socketId }) => {
+      console.log('Device left:', socketId);
       setConnectedDevices(prev => prev.filter(device => device.id !== socketId));
     });
     socket.on('session-info', ({ devices }) => {
-      setConnectedDevices(devices.filter(device => device.type !== 'sender'));
+      console.log('Session info received:', devices);
+      // Filter out sender devices and duplicates
+      const uniqueDevices = devices.filter((device, index, self) => 
+        device.type !== 'sender' && 
+        self.findIndex(d => d.id === device.id) === index
+      );
+      setConnectedDevices(uniqueDevices);
     });
   };
 
@@ -307,7 +320,19 @@ export default function Sender() {
       reader.readAsArrayBuffer(file);
     };
 
-    dc.onerror = () => setIsTransferring(false);
+    dc.onerror = (error) => {
+      console.error('Data channel error:', error);
+      setIsTransferring(false);
+      setTransferSpeed(0);
+    };
+
+    pc.onconnectionstatechange = () => {
+      console.log('Connection state:', pc.connectionState);
+      if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+        setIsTransferring(false);
+        setTransferSpeed(0);
+      }
+    };
   };
 
   const resetSession = () => {
