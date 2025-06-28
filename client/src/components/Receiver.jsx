@@ -471,7 +471,6 @@ export default function Receiver() {
             {connectionState === 'completed' && '✅'}
             {connectionState === 'error' && '❌'}
           </div>
-          <p className="receiver-status">{status}</p>
         </div>
 
         {/* File Info Card */}
