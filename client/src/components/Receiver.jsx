@@ -99,9 +99,11 @@ export default function Receiver() {
 
   // Function to verify session exists
   const verifySession = (sessionId, callback) => {
+    console.log('Verifying session:', sessionId);
     socket.emit('verify-session', { sessionId });
     
     const onSessionVerified = ({ exists, sessionId: verifiedSessionId }) => {
+      console.log('Session verification result:', { exists, sessionId: verifiedSessionId });
       if (verifiedSessionId === sessionId) {
         socket.off('session-verified', onSessionVerified);
         callback(exists);
@@ -110,22 +112,43 @@ export default function Receiver() {
     
     socket.on('session-verified', onSessionVerified);
     
-    // Timeout after 5 seconds
+    // Timeout after 10 seconds (increased from 5)
     setTimeout(() => {
+      console.log('Session verification timeout for:', sessionId);
       socket.off('session-verified', onSessionVerified);
       callback(false);
-    }, 5000);
+    }, 10000);
   };
 
   useEffect(() => {
-    // First verify the session exists
-    verifySession(session, (exists) => {
-      if (!exists) {
-        setStatus('Session not found. Please check the session ID.');
-        setConnectionState('error');
-        return;
-      }
+    console.log('Receiver useEffect triggered for session:', session);
+    
+    // Function to attempt connection with retries
+    const attemptConnection = (retryCount = 0) => {
+      const maxRetries = 3;
+      
+      console.log(`Attempting connection, retry ${retryCount}/${maxRetries}`);
+      
+      verifySession(session, (exists) => {
+        if (!exists) {
+          if (retryCount < maxRetries) {
+            setStatus(`Looking for session... (attempt ${retryCount + 1}/${maxRetries + 1})`);
+            console.log(`Session not found, retrying in 3 seconds... (${retryCount + 1}/${maxRetries + 1})`);
+            setTimeout(() => attemptConnection(retryCount + 1), 3000);
+            return;
+          } else {
+            setStatus('Session not found. Please make sure the sender has started the session first.');
+            setConnectionState('error');
+            return;
+          }
+        }
 
+        console.log('Session found, proceeding with connection setup');
+        setupConnection();
+      });
+    };
+
+    const setupConnection = () => {
       const pc = new RTCPeerConnection({
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
@@ -306,10 +329,12 @@ export default function Receiver() {
     });
 
     socket.on('connect', () => {
-      setStatus('Connected to server, waiting for sender...');
+      console.log('Socket connected to server');
+      setStatus('Connected to server, verifying session...');
     });
 
     socket.on('disconnect', () => {
+      console.log('Socket disconnected from server');
       setStatus('Disconnected from server');
     });
 
@@ -323,7 +348,10 @@ export default function Receiver() {
       socket.off('transfer-progress');
       socket.off('transfer-complete');
     };
-    }); // Close the verifySession callback
+    };
+
+    // Start the connection attempt
+    attemptConnection();
   }, [session]);
 
 
