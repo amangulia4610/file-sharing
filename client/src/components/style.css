@@ -1220,32 +1220,78 @@ body::before {
 
 /* Mobile-specific fixes for visibility and contrast */
 @media (max-width: 768px) {
-  /* Ensure text is always visible on mobile */
+  /* Strong dark overlay for main containers */
+  .sender-box,
+  .receiver-box {
+    background: rgba(0, 0, 0, 0.7) !important;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(20px) !important;
+  }
+
+  /* Ensure all main titles are highly visible */
   .sender-title,
   .receiver-title {
     color: #ffffff !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.9) !important;
+    font-weight: 800 !important;
   }
 
   .receiver-subtitle,
   .sender-subtext,
   .receiver-status {
-    color: rgba(255, 255, 255, 0.95) !important;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7) !important;
+    color: #ffffff !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
+    font-weight: 600 !important;
   }
 
-  /* Fix input visibility */
-  .session-input {
-    background: rgba(0, 0, 0, 0.3) !important;
+  /* Fix tab navigation contrast */
+  .tab-navigation {
+    background: rgba(0, 0, 0, 0.6) !important;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+  }
+
+  .tab-btn {
+    background: rgba(0, 0, 0, 0.4) !important;
     color: #ffffff !important;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    font-weight: 700 !important;
+  }
+
+  .tab-btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
+  }
+
+  .tab-btn.active {
+    background: linear-gradient(135deg, #1e40af, #1e3a8a) !important;
+    color: #ffffff !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
     border: 2px solid rgba(255, 255, 255, 0.5) !important;
   }
 
-  .session-input::placeholder {
-    color: rgba(255, 255, 255, 0.7) !important;
+  /* Fix input visibility with strong contrast */
+  .session-input {
+    background: rgba(0, 0, 0, 0.7) !important;
+    color: #ffffff !important;
+    border: 3px solid rgba(255, 255, 255, 0.6) !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+    font-weight: 700 !important;
   }
 
-  /* Fix info boxes and cards */
+  .session-input:focus {
+    background: rgba(0, 0, 0, 0.8) !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6) !important;
+  }
+
+  .session-input::placeholder {
+    color: rgba(255, 255, 255, 0.8) !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  /* Enhanced visibility for all info boxes and cards */
   .info-box,
   .progress-box,
   .qr-box,
@@ -1255,12 +1301,27 @@ body::before {
   .receiver-session-card,
   .receiver-status-card,
   .file-info-card,
-  .progress-section {
-    background: rgba(0, 0, 0, 0.4) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  .progress-section,
+  .instructions,
+  .receiver-hint,
+  .selected-file {
+    background: rgba(0, 0, 0, 0.75) !important;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(15px) !important;
   }
 
-  /* Fix all text in cards */
+  /* File drop zone enhanced visibility */
+  .file-drop-zone {
+    background: rgba(0, 0, 0, 0.6) !important;
+    border: 3px dashed rgba(255, 255, 255, 0.7) !important;
+  }
+
+  .file-drop-zone:hover {
+    background: rgba(0, 0, 0, 0.7) !important;
+    border-color: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  /* Enhance text visibility in all cards and sections */
   .info-title,
   .progress-title,
   .receiver-title-bar,
@@ -1274,76 +1335,104 @@ body::before {
   .progress-percentage,
   .received-size {
     color: #ffffff !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
+    font-weight: 600 !important;
   }
 
-  /* Fix instruction text */
+  /* Fix instruction and hint text with strong contrast */
   .instructions-title {
     color: #ffffff !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
+    font-weight: 700 !important;
   }
 
   .instructions-list li {
-    color: rgba(255, 255, 255, 0.95) !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7) !important;
+    color: #ffffff !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    font-weight: 500 !important;
   }
 
-  /* Fix hint text */
+  .instructions-list li .step-number {
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: #000000 !important;
+    font-weight: 800 !important;
+  }
+
   .hint-text {
-    color: rgba(255, 255, 255, 0.95) !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7) !important;
+    color: #ffffff !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
+    font-weight: 500 !important;
   }
 
   .hint-text strong {
     color: #ffffff !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
+    font-weight: 800 !important;
   }
 
-  /* Fix file drop zone */
+  /* Enhanced file drop zone text */
   .file-drop-text {
     color: #ffffff !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
+    font-weight: 700 !important;
   }
 
   .file-drop-subtext {
-    color: rgba(255, 255, 255, 0.8) !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7) !important;
+    color: #ffffff !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
+    font-weight: 600 !important;
   }
 
-  /* Fix session ID and labels */
+  /* Enhanced session ID and labels visibility */
   .session-label,
   .session-id,
   .input-label {
     color: #ffffff !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
+    font-weight: 700 !important;
   }
 
-  /* Fix QR code area for better contrast */
+  .session-id {
+    background: rgba(0, 0, 0, 0.8) !important;
+    border: 2px solid rgba(255, 255, 255, 0.5) !important;
+  }
+
+  /* QR code enhanced contrast */
   .qr-code {
-    background: rgba(255, 255, 255, 0.95) !important;
+    background: rgba(255, 255, 255, 0.98) !important;
     color: #000000 !important;
-    border: 2px solid rgba(0, 0, 0, 0.2) !important;
+    border: 3px solid rgba(0, 0, 0, 0.3) !important;
+    font-weight: 700 !important;
   }
 
-  /* Fix connection indicator text */
+  /* Enhanced connection indicator */
   .indicator-text {
     color: #ffffff !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
+    font-weight: 700 !important;
   }
 
-  /* Fix device card text */
+  .connection-indicator {
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+  }
+
+  /* Enhanced device card text visibility */
   .device-title {
     color: #ffffff !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
+    font-weight: 700 !important;
   }
 
   .detail-label,
   .detail-value {
     color: #ffffff !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7) !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
+    font-weight: 600 !important;
   }
 
-  /* Fix success/error card text */
+  /* Enhanced success/error card text */
   .success-title,
   .success-message,
   .success-file-name,
@@ -1351,25 +1440,62 @@ body::before {
   .error-title,
   .error-message {
     color: #ffffff !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
+    font-weight: 600 !important;
   }
 
-  /* Fix waiting and other status text */
+  /* Enhanced waiting and status text */
   .waiting-text {
     color: #ffffff !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
+    font-weight: 600 !important;
   }
 
-  /* Ensure buttons remain visible */
+  /* Enhanced button visibility */
   .btn {
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5) !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
+    font-weight: 700 !important;
+    border-width: 2px !important;
   }
 
-  /* Fix any remaining list items */
+  .btn-primary {
+    border-color: rgba(59, 130, 246, 0.8) !important;
+  }
+
+  .btn-success {
+    border-color: rgba(16, 185, 129, 0.8) !important;
+  }
+
+  .btn-danger {
+    border-color: rgba(239, 68, 68, 0.8) !important;
+  }
+
+  /* Enhanced list items */
   .info-list li {
     color: #ffffff !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7) !important;
-    background: rgba(0, 0, 0, 0.3) !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    font-weight: 500 !important;
+  }
+
+  /* Enhanced progress elements */
+  .progress-percentage {
+    color: #4ade80 !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
+    font-weight: 800 !important;
+  }
+
+  .file-speed {
+    color: #4ade80 !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+    font-weight: 700 !important;
+  }
+
+  .file-eta {
+    color: #60a5fa !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+    font-weight: 700 !important;
   }
 }
 
