@@ -18,6 +18,7 @@ export default function Receiver() {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [connectedDevices, setConnectedDevices] = useState(0);
   const [hasStartedTransfer, setHasStartedTransfer] = useState(false); // Track if transfer has started
+  const [lastKnownETA, setLastKnownETA] = useState(''); // Keep last valid ETA
   
   // Add refs to track values without causing re-renders
   const speedCalculationRef = useRef({
@@ -54,9 +55,13 @@ export default function Receiver() {
   const formattedProgress = useMemo(() => Math.round(downloadProgress), [downloadProgress]);
   const formattedSpeed = useMemo(() => formatSpeed(downloadSpeed), [downloadSpeed]);
   const formattedTimeRemaining = useMemo(() => {
-    if (timeRemaining <= 0) return 'Calculating...';
-    return formatTime(timeRemaining);
-  }, [timeRemaining]);
+    if (timeRemaining > 0) {
+      const newETA = formatTime(timeRemaining);
+      setLastKnownETA(newETA); // Update last known ETA when we have a valid value
+      return newETA;
+    }
+    return lastKnownETA || ''; // Return last known ETA or empty string if none
+  }, [timeRemaining, lastKnownETA]);
   const formattedFileSize = useMemo(() => 
     transferInfo ? formatFileSize(transferInfo.fileSize) : '', [transferInfo]
   );
@@ -494,7 +499,7 @@ export default function Receiver() {
                 {downloadSpeed > 0 && (
                   <>
                     <span className="file-speed">• {formattedSpeed}</span>
-                    {hasStartedTransfer && downloadProgress < 100 && (
+                    {hasStartedTransfer && downloadProgress < 100 && formattedTimeRemaining && (
                       <span className="file-eta">• {formattedTimeRemaining} remaining</span>
                     )}
                   </>
