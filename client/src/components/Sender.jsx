@@ -219,17 +219,11 @@ export default function Sender() {
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' }
-      ],
-      // Optimize for maximum throughput
-      iceTransportPolicy: 'all',
-      bundlePolicy: 'max-bundle',
-      rtcpMuxPolicy: 'require'
+      ]
     });
     setPeerConnection(pc);
     const dc = pc.createDataChannel('file', {
-      // Optimize for maximum speed and reliability
-      ordered: false, // Allow out-of-order delivery for speed
-      maxRetransmits: 0 // No retransmissions for speed
+      ordered: true
     });
 
     // Only join once - remove the duplicate join call
@@ -251,8 +245,8 @@ export default function Sender() {
     });
 
     dc.onopen = () => {
-      // Maximize chunk size for best performance - WebRTC can handle up to 1MB chunks
-      const chunkSize = 1024 * 1024; // 1MB chunks for maximum throughput
+      // Simple and reliable chunk size
+      const chunkSize = 16384; // 16KB chunks - reliable and tested
       let offset = 0;
       const reader = new FileReader();
       let startTime = null;
@@ -265,11 +259,12 @@ export default function Sender() {
         startTime = Date.now();
         lastProgressTime = startTime;
 
+        // Send filename first
         dc.send(JSON.stringify({ type: 'filename', name: file.name }));
 
         const sendChunk = () => {
-          // Check if transfer is complete
           if (offset >= totalSize) {
+            // Transfer complete
             dc.send('EOF');
             setTransferProgress(100);
             setTransferSpeed(0);
@@ -278,20 +273,19 @@ export default function Sender() {
             return;
           }
 
-          // Send chunks as fast as possible while respecting buffer limits
-          while (offset < totalSize && dc.bufferedAmount < chunkSize * 8) {
-            const chunk = arrayBuffer.slice(offset, offset + chunkSize);
-            dc.send(chunk);
-            offset += chunkSize;
-            
-            const progress = Math.round((offset / totalSize) * 100);
-            setTransferProgress(progress);
-            socket.emit('transfer-progress', { session: currentSession, progress });
-          }
+          // Send one chunk at a time
+          const chunk = arrayBuffer.slice(offset, offset + chunkSize);
+          dc.send(chunk);
+          offset += chunkSize;
           
-          // Calculate speed every 200ms
+          // Update progress
+          const progress = Math.round((offset / totalSize) * 100);
+          setTransferProgress(progress);
+          socket.emit('transfer-progress', { session: currentSession, progress });
+          
+          // Calculate speed every 500ms
           const currentTime = Date.now();
-          if (currentTime - lastProgressTime >= 200) {
+          if (currentTime - lastProgressTime >= 500) {
             const timeDiff = (currentTime - lastProgressTime) / 1000;
             const dataDiff = offset - lastOffset;
             const speed = dataDiff / timeDiff;
@@ -300,18 +294,8 @@ export default function Sender() {
             lastOffset = offset;
           }
 
-          // Continue sending immediately if not complete
-          if (offset < totalSize) {
-            // Use requestAnimationFrame for smooth, fast iteration
-            requestAnimationFrame(sendChunk);
-          } else {
-            // Final EOF
-            dc.send('EOF');
-            setTransferProgress(100);
-            setTransferSpeed(0);
-            socket.emit('transfer-complete', { session: currentSession });
-            setIsTransferring(false);
-          }
+          // Continue with next chunk after small delay
+          setTimeout(sendChunk, 10);
         };
         
         sendChunk();

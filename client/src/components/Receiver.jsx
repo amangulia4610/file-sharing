@@ -130,9 +130,7 @@ export default function Receiver() {
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
           { urls: 'stun:stun1.l.google.com:19302' }
-        ],
-        // Enable aggressive ICE gathering for better performance
-        iceTransportPolicy: 'all'
+        ]
       });
 
       let chunks = [];
@@ -147,23 +145,14 @@ export default function Receiver() {
       setStatus('Joined WiFi session, waiting for sender...');
       setConnectionState('waiting');
 
-    // Verify session exists
-    verifySession(session, (exists) => {
-      if (!exists) {
-        setStatus('Session not found. Please check the session ID and try again.');
-        setConnectionState('error');
-        return;
-      }
-    });
-
-    socket.on('transfer-start', ({ fileName, fileSize }) => {
-      setTransferInfo({ fileName, fileSize });
-      setStatus(`Receiving via WiFi: ${fileName}...`);
-      setConnectionState('receiving');
-      totalSize = fileSize;
-      startTime = Date.now();
-      lastProgressTime = startTime;
-    });
+      socket.on('transfer-start', ({ fileName, fileSize }) => {
+        setTransferInfo({ fileName, fileSize });
+        setStatus(`Receiving via WiFi: ${fileName}...`);
+        setConnectionState('receiving');
+        totalSize = fileSize;
+        startTime = Date.now();
+        lastProgressTime = startTime;
+      });
 
     socket.on('transfer-progress', ({ progress }) => {
       setDownloadProgress(progress);
@@ -208,19 +197,16 @@ export default function Receiver() {
       dc.onmessage = (e) => {
         if (typeof e.data === 'string') {
           if (e.data === 'EOF') {
-            // Create blob and download immediately for best performance
-            const blob = new Blob(chunks, { type: 'application/octet-stream' });
+            // Create and download file
+            const blob = new Blob(chunks);
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = originalFileName;
-            a.style.display = 'none';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            
-            // Clean up immediately
-            setTimeout(() => URL.revokeObjectURL(url), 100);
+            URL.revokeObjectURL(url);
             
             setStatus('Download complete!');
             setDownloadProgress(100);
@@ -238,20 +224,19 @@ export default function Receiver() {
             }
           }
         } else {
-          // Handle binary data chunks - optimized for high throughput
-          const chunkSize = e.data.byteLength || e.data.size || 0;
+          // Handle binary data chunks
           chunks.push(e.data);
-          receivedSize += chunkSize;
+          receivedSize += e.data.byteLength || e.data.size || 0;
           
-          // Update progress and speed calculations less frequently for better performance
+          // Update progress and speed
           const currentTime = Date.now();
           if (startTime === null) {
             startTime = currentTime;
             lastProgressTime = currentTime;
           }
           
-          // Calculate download speed every 200ms for smooth updates
-          if (currentTime - lastProgressTime >= 200) {
+          // Calculate download speed every 500ms
+          if (currentTime - lastProgressTime >= 500) {
             const timeDiff = (currentTime - lastProgressTime) / 1000;
             const sizeDiff = receivedSize - lastReceivedSize;
             const speed = sizeDiff / timeDiff;
@@ -266,18 +251,20 @@ export default function Receiver() {
               const timeRemaining = remainingBytes / speed;
               setTimeRemaining(timeRemaining);
             }
-            
-            // Update progress
-            const progress = totalSize > 0 ? (receivedSize / totalSize) * 100 : 0;
-            setDownloadProgress(Math.round(progress));
-            
-            // Update status with speed info
-            if (totalSize > 0) {
-              const received = formatFileSize(receivedSize);
-              const total = formatFileSize(totalSize);
-              const speedText = speed > 0 ? ` • ${formatFileSize(speed)}/s` : '';
-              setStatus(`Receiving ${originalFileName}... ${received}/${total} (${Math.round(progress)}%)${speedText}`);
-            }
+          }
+          
+          // Update progress
+          const progress = totalSize > 0 ? (receivedSize / totalSize) * 100 : 0;
+          setDownloadProgress(Math.round(progress));
+          
+          // Update status
+          if (totalSize > 0) {
+            const received = formatFileSize(receivedSize);
+            const total = formatFileSize(totalSize);
+            const speedText = downloadSpeed > 0 ? ` • ${formatFileSize(downloadSpeed)}/s` : '';
+            setStatus(`Receiving ${originalFileName}... ${received}/${total} (${Math.round(progress)}%)${speedText}`);
+          } else {
+            setStatus(`Receiving ${originalFileName}... ${formatFileSize(receivedSize)} received`);
           }
         }
       };
