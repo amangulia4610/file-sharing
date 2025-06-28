@@ -17,6 +17,7 @@ export default function Receiver() {
   const [downloadSpeed, setDownloadSpeed] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [connectedDevices, setConnectedDevices] = useState(0);
+  const [hasStartedTransfer, setHasStartedTransfer] = useState(false); // Track if transfer has started
   
   // Add refs to track values without causing re-renders
   const speedCalculationRef = useRef({
@@ -52,7 +53,10 @@ export default function Receiver() {
   // Memoize formatted values to prevent unnecessary recalculations
   const formattedProgress = useMemo(() => Math.round(downloadProgress), [downloadProgress]);
   const formattedSpeed = useMemo(() => formatSpeed(downloadSpeed), [downloadSpeed]);
-  const formattedTimeRemaining = useMemo(() => formatTime(timeRemaining), [timeRemaining]);
+  const formattedTimeRemaining = useMemo(() => {
+    if (timeRemaining <= 0) return 'Calculating...';
+    return formatTime(timeRemaining);
+  }, [timeRemaining]);
   const formattedFileSize = useMemo(() => 
     transferInfo ? formatFileSize(transferInfo.fileSize) : '', [transferInfo]
   );
@@ -216,6 +220,7 @@ export default function Receiver() {
         setTransferInfo({ fileName, fileSize });
         setStatus(`Receiving via WiFi: ${fileName}...`);
         setConnectionState('receiving');
+        setHasStartedTransfer(true); // Mark that transfer has started
         totalSize = fileSize;
         startTime = Date.now();
         lastProgressTime = startTime;
@@ -240,9 +245,14 @@ export default function Receiver() {
             
             setDownloadSpeed(speed);
             
+            // Always calculate time remaining, even if speed is low
+            const remainingBytes = totalSize - currentReceivedSize;
             if (speed > 0) {
-              const remainingBytes = totalSize - currentReceivedSize;
               const timeRem = remainingBytes / speed;
+              setTimeRemaining(timeRem);
+            } else if (downloadSpeed > 0) {
+              // Use previous speed if current speed is 0
+              const timeRem = remainingBytes / downloadSpeed;
               setTimeRemaining(timeRem);
             }
           }
@@ -484,7 +494,7 @@ export default function Receiver() {
                 {downloadSpeed > 0 && (
                   <>
                     <span className="file-speed">• {formattedSpeed}</span>
-                    {timeRemaining > 0 && downloadProgress < 100 && (
+                    {hasStartedTransfer && downloadProgress < 100 && (
                       <span className="file-eta">• {formattedTimeRemaining} remaining</span>
                     )}
                   </>
