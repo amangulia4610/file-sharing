@@ -486,7 +486,6 @@ export default function Receiver() {
         {/* File Info Card */}
         {transferInfo && (
           <div className="file-info-card">
-            <div className="file-icon">�</div>
             <div className="file-details">
               <h3 className="file-name">{transferInfo.fileName}</h3>
               <div className="file-meta">
