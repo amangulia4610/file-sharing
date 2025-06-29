@@ -49,6 +49,14 @@ body::before {
   position: relative;
 }
 
+.sender-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+}
+
 .sender-box,
 .receiver-box {
   width: 100%;
@@ -66,6 +74,17 @@ body::before {
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+}
+
+.sender-box {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 2rem;
+  width: 100%;
+  max-width: 1200px; /* Increased for better desktop experience */
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
 }
 
 .sender-box::before,
@@ -1499,42 +1518,315 @@ body::before {
   }
 }
 
-/* Add responsive layout styles for desktop and mobile */
+/* Remove the dark mobile overrides and fix desktop width */
 
-/* Desktop layout - side by side */
+/* Desktop layout improvements - only when session exists */
 @media (min-width: 769px) {
+  /* Normal width before session creation */
+  .sender-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  .sender-box {
+    max-width: 100%;
+    padding: 2rem;
+  }
+  
+  /* Expanded layout when session is created */
+  .sender-container.session-active {
+    max-width: 1400px;
+    padding: 2rem;
+  }
+  
+  .sender-box.session-active {
+    max-width: 100%;
+    padding: 3rem;
+  }
+  
   .sender-content-layout {
     display: flex;
-    gap: 2rem;
+    gap: 3rem;
     margin-top: 2rem;
+    align-items: stretch; /* Equal height columns */
   }
   
   .sender-left-section {
-    flex: 1;
-    min-width: 0; /* Allow flex item to shrink */
-  }
-  
-  .sender-right-section {
-    flex: 1;
-    min-width: 0; /* Allow flex item to shrink */
-  }
-  
-  /* Ensure both sections have equal height */
-  .sender-left-section,
-  .sender-right-section {
+    flex: 1; /* Equal width sections */
+    min-width: 0;
     display: flex;
     flex-direction: column;
   }
   
-  /* Make file drop zone and info boxes fill available height */
-  .file-drop-zone,
-  .info-box,
-  .qr-box {
+  .sender-right-section {
+    flex: 1; /* Equal width sections */
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Make sections fill available height equally */
+  .file-drop-zone {
+    min-height: 200px;
+    padding: 3rem 2rem;
     flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .info-box {
+    padding: 2rem;
+    min-height: 300px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .qr-box {
+    padding: 2rem;
+    min-height: 250px;
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  /* Ensure button groups are at bottom of left section */
+  .sender-left-section .btn-group {
+    margin-top: auto;
+    padding-top: 1.5rem;
+  }
+  
+  /* Progress box styling for consistency */
+  .progress-box {
+    margin-top: 1.5rem;
+    padding: 2rem;
+    min-height: 150px;
+  }
+  
+  /* Ensure consistent spacing within sections */
+  .sender-left-section > * {
+    margin-bottom: 1.5rem;
+  }
+  
+  .sender-left-section > *:last-child {
+    margin-bottom: 0;
+  }
+  
+  .sender-right-section > * {
+    margin-bottom: 1.5rem;
+  }
+  
+  .sender-right-section > *:last-child {
+    margin-bottom: 0;
+  }
+  
+  /* Make selected file card more compact */
+  .selected-file {
+    margin-bottom: 1rem;
+    padding: 1rem;
+  }
+  
+  /* Ensure info box content is properly spaced */
+  .info-box .info-title {
+    margin-bottom: 1rem;
+  }
+  
+  .info-box .info-text {
+    margin-bottom: 1rem;
+  }
+  
+  .connected-devices-list {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  /* QR code section centering */
+  .qr-box .qr-text {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .qr-box .qr-image {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .qr-box .qr-session {
+    text-align: center;
+    margin-top: 1rem;
   }
 }
 
-/* Mobile layout - stacked vertically */
+/* Mobile layout - keep original glassmorphism colors, remove dark overrides */
+@media (max-width: 768px) {
+  /* Reset all dark mobile overrides to match desktop */
+  .sender-box,
+  .receiver-box {
+    background: rgba(255, 255, 255, 0.25) !important; /* Same as desktop */
+    border: 1px solid rgba(255, 255, 255, 0.18) !important; /* Same as desktop */
+    backdrop-filter: blur(20px) !important;
+  }
+  
+  /* Keep original text colors - remove dark overrides */
+  .sender-title,
+  .receiver-title,
+  .receiver-subtitle,
+  .sender-subtext,
+  .receiver-status,
+  .instructions-title,
+  .instructions-list li,
+  .info-title,
+  .info-text,
+  .qr-text,
+  .hint-text,
+  .hint-text strong,
+  .file-drop-text,
+  .file-drop-subtext,
+  .session-label,
+  .input-label {
+    color: inherit !important; /* Use default colors */
+    text-shadow: none !important; /* Remove dark text shadows */
+    font-weight: inherit !important; /* Use default font weights */
+  }
+  
+  /* Tab navigation - keep original styling */
+  .tab-navigation {
+    background: rgba(255, 255, 255, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  }
+  
+  .tab-btn {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: inherit !important;
+    text-shadow: none !important;
+    border: none !important;
+  }
+  
+  .tab-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+  }
+  
+  /* Cards and info boxes - keep original glassmorphism */
+  .info-box,
+  .qr-box,
+  .progress-box,
+  .instructions,
+  .selected-file,
+  .device-card {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    backdrop-filter: blur(10px) !important;
+  }
+  
+  /* Input fields - keep original styling */
+  .session-input {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    color: inherit !important;
+  }
+  
+  .session-input::placeholder {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+  
+  /* QR code - keep white background for scannability */
+  .qr-code {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #333 !important;
+  }
+  
+  /* File drop zone - keep original styling */
+  .file-drop-zone {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 2px dashed rgba(255, 255, 255, 0.4) !important;
+  }
+  
+  .file-drop-zone.drag-over {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.6) !important;
+  }
+  
+  /* Mobile responsive layout */
+  .sender-content-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  
+  .sender-left-section,
+  .sender-right-section {
+    width: 100%;
+  }
+}
+
+/* Additional layout improvements for desktop session view */
+@media (min-width: 769px) {
+  /* Ensure consistent spacing within sections */
+  .sender-left-section > * {
+    margin-bottom: 1.5rem;
+  }
+  
+  .sender-left-section > *:last-child {
+    margin-bottom: 0;
+  }
+  
+  .sender-right-section > * {
+    margin-bottom: 1.5rem;
+  }
+  
+  .sender-right-section > *:last-child {
+    margin-bottom: 0;
+  }
+  
+  /* Make selected file card more compact */
+  .selected-file {
+    margin-bottom: 1rem;
+    padding: 1rem;
+  }
+  
+  /* Ensure info box content is properly spaced */
+  .info-box .info-title {
+    margin-bottom: 1rem;
+  }
+  
+  .info-box .info-text {
+    margin-bottom: 1rem;
+  }
+  
+  .connected-devices-list {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  /* QR code section centering */
+  .qr-box .qr-text {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .qr-box .qr-image {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .qr-box .qr-session {
+    text-align: center;
+    margin-top: 1rem;
+  }
+}
+
+/* Improve mobile spacing to prevent conflicts */
 @media (max-width: 768px) {
   .sender-content-layout {
     display: flex;
@@ -1548,37 +1840,14 @@ body::before {
     width: 100%;
   }
   
-  /* Ensure proper spacing on mobile */
-  .file-drop-zone,
-  .info-box,
-  .qr-box {
+  /* Ensure proper mobile spacing */
+  .sender-left-section > *,
+  .sender-right-section > * {
     margin-bottom: 1rem;
   }
-}
-@media (max-width: 480px) {
-  .sender-container,
-  .receiver-container {
-    padding: 0.5rem;
-  }
-
-  .sender-box,
-  .receiver-box {
-    padding: 1.25rem;
-  }
-
-  .sender-title,
-  .receiver-title {
-    font-size: 1.6rem;
-  }
-
-  .btn {
-    padding: 0.875rem 1.25rem;
-    font-size: 0.85rem;
-  }
-
-  .file-info {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
+  
+  .sender-left-section > *:last-child,
+  .sender-right-section > *:last-child {
+    margin-bottom: 0;
   }
 }

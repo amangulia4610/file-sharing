@@ -415,8 +415,8 @@ export default function Sender() {
   };
 
   return (
-    <div className="sender-container">
-      <div className="sender-box">
+    <div className={`sender-container ${sessionId ? 'session-active' : ''}`}>
+      <div className={`sender-box ${sessionId ? 'session-active' : ''}`}>
         <h1 className="sender-title">📁 The File Share</h1>
         
         {/* Tab Navigation */}
