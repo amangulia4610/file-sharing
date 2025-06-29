@@ -482,203 +482,212 @@ export default function Sender() {
           </>
         ) : (
           <>
-            {/* File Selection Area */}
-            <div 
-              className={`file-drop-zone ${isDragOver ? 'drag-over' : ''}`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={openFileDialog}
-            >
-              <div className="file-drop-icon">
-                {currentFile ? '📄' : '📁'}
-              </div>
-              <div className="file-drop-text">
-                {currentFile ? 'File Selected!' : 'Drop your file here'}
-              </div>
-              <div className="file-drop-subtext">
-                {currentFile ? 'Click to change file' : 'or click to browse files'}
-              </div>
-            </div>
-
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="file-input"
-              onChange={handleFileSelect}
-            />
-
-            {/* Selected File Info */}
-            {currentFile && (
-              <div className="selected-file">
-                <div className="file-info">
-                  <div className="file-icon">📄</div>
-                  <div className="file-details">
-                    <h4>{currentFile.name}</h4>
-                    <p>Size: {formatFileSize(currentFile.size)}</p>
+            {/* Two-column responsive layout */}
+            <div className="sender-content-layout">
+              
+              {/* Left Section - File Upload */}
+              <div className="sender-left-section">
+                {/* File Selection Area */}
+                <div 
+                  className={`file-drop-zone ${isDragOver ? 'drag-over' : ''}`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={openFileDialog}
+                >
+                  <div className="file-drop-icon">
+                    {currentFile ? '📄' : '📁'}
+                  </div>
+                  <div className="file-drop-text">
+                    {currentFile ? 'File Selected!' : 'Drop your file here'}
+                  </div>
+                  <div className="file-drop-subtext">
+                    {currentFile ? 'Click to change file' : 'or click to browse files'}
                   </div>
                 </div>
-              </div>
-            )}
 
-            {/* Action Buttons */}
-            <div className="btn-group">
-              <button 
-                onClick={startSending} 
-                disabled={isTransferring || !currentFile} 
-                className={`btn ${isTransferring || !currentFile ? 'btn-disabled' : 'btn-success'}`}
-              >
-                {isTransferring ? (
-                  <>
-                    <span className="loading"></span>
-                    Sending via WiFi...
-                  </>
-                ) : (
-                  '🚀 Send File via WiFi'
-                )}
-              </button>
-              <button onClick={resetSession} className="btn btn-danger">
-                🔁 Reset Session
-              </button>
-            </div>
-          </>
-        )}
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="file-input"
+                  onChange={handleFileSelect}
+                />
 
-        {/* Connected Devices */}
-        {sessionId && (
-          <div className="info-box">
-            <div className="info-title">
-              🌐 WiFi Connected Devices ({connectedDevices.length})
-            </div>
-            {connectedDevices.length === 0 ? (
-              <p className="info-text">
-                Waiting for devices to connect via WiFi... Share the QR code below!
-              </p>
-            ) : (
-              <div className="connected-devices-list">
-                {connectedDevices.map((device, i) => (
-                  <div key={device.id} className="device-card">
-                    <div className="device-header">
-                      <span className="device-icon">
-                        {device.deviceIcon || (device.deviceType === 'mobile' ? '📱' : '💻')}
-                      </span>
-                      <div className="device-basic-info">
-                        <h4 className="device-title">
-                          {device.displayName || device.deviceName || 
-                           `${device.deviceType === 'mobile' ? 'Mobile' : 
-                             device.deviceType === 'tablet' ? 'Tablet' : 'Desktop'} Device #${i + 1}`}
-                        </h4>
-                        <span className="device-status">🟢 Connected via WiFi</span>
+                {/* Selected File Info */}
+                {currentFile && (
+                  <div className="selected-file">
+                    <div className="file-info">
+                      <div className="file-icon">📄</div>
+                      <div className="file-details">
+                        <h4>{currentFile.name}</h4>
+                        <p>Size: {formatFileSize(currentFile.size)}</p>
                       </div>
                     </div>
-                    
-                    <div className="device-details">
-                      {device.osName && (
-                        <div className="device-detail-item">
-                          <span className="detail-label">Operating System:</span>
-                          <span className="detail-value">{device.osName}</span>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="btn-group">
+                  <button 
+                    onClick={startSending} 
+                    disabled={isTransferring || !currentFile} 
+                    className={`btn ${isTransferring || !currentFile ? 'btn-disabled' : 'btn-success'}`}
+                  >
+                    {isTransferring ? (
+                      <>
+                        <span className="loading"></span>
+                        Sending via WiFi...
+                      </>
+                    ) : (
+                      '🚀 Send File via WiFi'
+                    )}
+                  </button>
+                  <button onClick={resetSession} className="btn btn-danger">
+                    🔁 Reset Session
+                  </button>
+                </div>
+
+                {/* Transfer Progress */}
+                {isTransferring && currentFile && (
+                  <div className="progress-box">
+                    <div className="progress-title">
+                      📁 Sending via WiFi: {currentFile.name}
+                    </div>
+                    <div className="progress-sub">
+                      Size: {formatFileSize(currentFile.size)} • {transferProgress}% complete
+                      {transferSpeed > 0 && ` • ${formatFileSize(transferSpeed)}/s`}
+                    </div>
+                    <div className="progress-bar">
+                      <div className="progress-inner" style={{ width: `${transferProgress}%` }}></div>
+                    </div>
+                    <div className="progress-text">{transferProgress}%</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Right Section - Connection Info */}
+              <div className="sender-right-section">
+                {/* Connected Devices */}
+                <div className="info-box">
+                  <div className="info-title">
+                    🌐 WiFi Connected Devices ({connectedDevices.length})
+                  </div>
+                  {connectedDevices.length === 0 ? (
+                    <p className="info-text">
+                      Waiting for devices to connect via WiFi... Share the QR code below!
+                    </p>
+                  ) : (
+                    <div className="connected-devices-list">
+                      {connectedDevices.map((device, i) => (
+                        <div key={device.id} className="device-card">
+                          <div className="device-header">
+                            <span className="device-icon">
+                              {device.deviceIcon || (device.deviceType === 'mobile' ? '📱' : '💻')}
+                            </span>
+                            <div className="device-basic-info">
+                              <h4 className="device-title">
+                                {device.displayName || device.deviceName || 
+                                 `${device.deviceType === 'mobile' ? 'Mobile' : 
+                                   device.deviceType === 'tablet' ? 'Tablet' : 'Desktop'} Device #${i + 1}`}
+                              </h4>
+                              <span className="device-status">🟢 Connected via WiFi</span>
+                            </div>
+                          </div>
+                          
+                          <div className="device-details">
+                            {device.osName && (
+                              <div className="device-detail-item">
+                                <span className="detail-label">Operating System:</span>
+                                <span className="detail-value">{device.osName}</span>
+                              </div>
+                            )}
+                            
+                            {device.browserName && (
+                              <div className="device-detail-item">
+                                <span className="detail-label">Browser:</span>
+                                <span className="detail-value">
+                                  {device.browserName} {device.browserVersion && `v${device.browserVersion}`}
+                                </span>
+                              </div>
+                            )}
+                            
+                            {device.screenResolution && (
+                              <div className="device-detail-item">
+                                <span className="detail-label">Screen:</span>
+                                <span className="detail-value">{device.screenResolution}</span>
+                              </div>
+                            )}
+                            
+                            {device.language && (
+                              <div className="device-detail-item">
+                                <span className="detail-label">Language:</span>
+                                <span className="detail-value">{device.language}</span>
+                              </div>
+                            )}
+                            
+                            {device.timezone && (
+                              <div className="device-detail-item">
+                                <span className="detail-label">Timezone:</span>
+                                <span className="detail-value">{device.timezone}</span>
+                              </div>
+                            )}
+                            
+                            {device.timestamp && (
+                              <div className="device-detail-item">
+                                <span className="detail-label">Connected:</span>
+                                <span className="detail-value">
+                                  {new Date(device.timestamp).toLocaleTimeString()}
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      )}
-                      
-                      {device.browserName && (
-                        <div className="device-detail-item">
-                          <span className="detail-label">Browser:</span>
-                          <span className="detail-value">
-                            {device.browserName} {device.browserVersion && `v${device.browserVersion}`}
-                          </span>
-                        </div>
-                      )}
-                      
-                      {device.screenResolution && (
-                        <div className="device-detail-item">
-                          <span className="detail-label">Screen:</span>
-                          <span className="detail-value">{device.screenResolution}</span>
-                        </div>
-                      )}
-                      
-                      {device.language && (
-                        <div className="device-detail-item">
-                          <span className="detail-label">Language:</span>
-                          <span className="detail-value">{device.language}</span>
-                        </div>
-                      )}
-                      
-                      {device.timezone && (
-                        <div className="device-detail-item">
-                          <span className="detail-label">Timezone:</span>
-                          <span className="detail-value">{device.timezone}</span>
-                        </div>
-                      )}
-                      
-                      {device.timestamp && (
-                        <div className="device-detail-item">
-                          <span className="detail-label">Connected:</span>
-                          <span className="detail-value">
-                            {new Date(device.timestamp).toLocaleTimeString()}
-                          </span>
-                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* QR Code and Connection Info */}
+                {qrCode && (
+                  <div className="qr-box">
+                    <p className="qr-text">
+                      📱 Scan this QR code on the receiving device (same WiFi network):
+                    </p>
+                    <div className="qr-image">
+                      <QRCodeSVG value={qrCode} size={180} />
+                    </div>
+                    <div 
+                      className={`qr-code ${linkCopied ? 'copied' : ''}`}
+                      onClick={copyLinkToClipboard}
+                      title="Click to copy link"
+                    >
+                      {qrCode}
+                      {linkCopied && (
+                        <span className="copy-feedback">
+                          ✓ Copied!
+                        </span>
                       )}
                     </div>
+                    <p className="qr-session">
+                      Session ID: <span 
+                        className={`session-id-clickable ${sessionIdCopied ? 'copied' : ''}`}
+                        onClick={copySessionIdToClipboard}
+                        title="Click to copy session ID"
+                      >
+                        {sessionId}
+                      </span>
+                      {sessionIdCopied && (
+                        <span className="copy-feedback session-copy-feedback">
+                          ✓ Copied!
+                        </span>
+                      )}
+                    </p>
                   </div>
-                ))}
+                )}
               </div>
-            )}
-          </div>
-        )}
-
-        {/* Transfer Progress */}
-        {isTransferring && currentFile && (
-          <div className="progress-box">
-            <div className="progress-title">
-              📁 Sending via WiFi: {currentFile.name}
+              
             </div>
-            <div className="progress-sub">
-              Size: {formatFileSize(currentFile.size)} • {transferProgress}% complete
-              {transferSpeed > 0 && ` • ${formatFileSize(transferSpeed)}/s`}
-            </div>
-            <div className="progress-bar">
-              <div className="progress-inner" style={{ width: `${transferProgress}%` }}></div>
-            </div>
-            <div className="progress-text">{transferProgress}%</div>
-          </div>
-        )}
-
-        {/* QR Code and Connection Info */}
-        {qrCode && (
-          <div className="qr-box">
-            <p className="qr-text">
-              📱 Scan this QR code on the receiving device (same WiFi network):
-            </p>
-            <div className="qr-image">
-              <QRCodeSVG value={qrCode} size={180} />
-            </div>
-            <div 
-              className={`qr-code ${linkCopied ? 'copied' : ''}`}
-              onClick={copyLinkToClipboard}
-              title="Click to copy link"
-            >
-              {qrCode}
-              {linkCopied && (
-                <span className="copy-feedback">
-                  ✓ Copied!
-                </span>
-              )}
-            </div>
-            <p className="qr-session">
-              Session ID: <span 
-                className={`session-id-clickable ${sessionIdCopied ? 'copied' : ''}`}
-                onClick={copySessionIdToClipboard}
-                title="Click to copy session ID"
-              >
-                {sessionId}
-              </span>
-              {sessionIdCopied && (
-                <span className="copy-feedback session-copy-feedback">
-                  ✓ Copied!
-                </span>
-              )}
-            </p>
-          </div>
+          </>
         )}
           </>
         )}

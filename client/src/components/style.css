@@ -1499,6 +1499,62 @@ body::before {
   }
 }
 
+/* Add responsive layout styles for desktop and mobile */
+
+/* Desktop layout - side by side */
+@media (min-width: 769px) {
+  .sender-content-layout {
+    display: flex;
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+  
+  .sender-left-section {
+    flex: 1;
+    min-width: 0; /* Allow flex item to shrink */
+  }
+  
+  .sender-right-section {
+    flex: 1;
+    min-width: 0; /* Allow flex item to shrink */
+  }
+  
+  /* Ensure both sections have equal height */
+  .sender-left-section,
+  .sender-right-section {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Make file drop zone and info boxes fill available height */
+  .file-drop-zone,
+  .info-box,
+  .qr-box {
+    flex-grow: 1;
+  }
+}
+
+/* Mobile layout - stacked vertically */
+@media (max-width: 768px) {
+  .sender-content-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  
+  .sender-left-section,
+  .sender-right-section {
+    width: 100%;
+  }
+  
+  /* Ensure proper spacing on mobile */
+  .file-drop-zone,
+  .info-box,
+  .qr-box {
+    margin-bottom: 1rem;
+  }
+}
 @media (max-width: 480px) {
   .sender-container,
   .receiver-container {
