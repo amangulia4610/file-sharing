@@ -351,7 +351,7 @@ body::before {
 }
 
 .instructions-list li .step-number {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.2) !important; /* Exact desktop match */
   color: #ffffff;
   font-weight: 600;
   font-size: 0.8rem;
@@ -384,7 +384,6 @@ body::before {
 .file-drop-zone:hover {
   border-color: rgba(255, 255, 255, 0.6);
   background: rgba(255, 255, 255, 0.1);
-  transform: scale(1.02);
 }
 
 .file-drop-zone.drag-over {
@@ -606,7 +605,7 @@ body::before {
   font-size: 1rem;
   padding: 0.75rem 1rem;
   margin-bottom: 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1) !important; /* Exact desktop match */
   border-radius: 12px;
   border-left: 4px solid #10b981;
   display: flex;
@@ -1168,9 +1167,9 @@ body::before {
   justify-content: center;
   width: 50px;
   height: 50px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1) !important; /* Exact desktop match */
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.2) !important; /* Exact desktop match */
 }
 
 .device-basic-info {
@@ -1250,287 +1249,6 @@ body::before {
   
   .detail-value {
     text-align: left;
-  }
-}
-
-/* Mobile-specific fixes for visibility and contrast */
-@media (max-width: 768px) {
-  /* Strong dark overlay for main containers */
-  .sender-box,
-  .receiver-box {
-    background: rgba(0, 0, 0, 0.7) !important;
-    border: 2px solid rgba(255, 255, 255, 0.4) !important;
-    backdrop-filter: blur(20px) !important;
-  }
-
-  /* Ensure all main titles are highly visible */
-  .sender-title,
-  .receiver-title {
-    color: #ffffff !important;
-    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.9) !important;
-    font-weight: 800 !important;
-  }
-
-  .receiver-subtitle,
-  .sender-subtext,
-  .receiver-status {
-    color: #ffffff !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
-    font-weight: 600 !important;
-  }
-
-  /* Fix tab navigation contrast */
-  .tab-navigation {
-    background: rgba(0, 0, 0, 0.6) !important;
-    border: 2px solid rgba(255, 255, 255, 0.4) !important;
-  }
-
-  .tab-btn {
-    background: rgba(0, 0, 0, 0.4) !important;
-    color: #ffffff !important;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    font-weight: 700 !important;
-  }
-
-  .tab-btn:hover {
-    background: rgba(255, 255, 255, 0.2) !important;
-    color: #ffffff !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
-  }
-
-  .tab-btn.active {
-    background: linear-gradient(135deg, #1e40af, #1e3a8a) !important;
-    color: #ffffff !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
-    border: 2px solid rgba(255, 255, 255, 0.5) !important;
-  }
-
-  /* Fix input visibility with strong contrast */
-  .session-input {
-    background: rgba(0, 0, 0, 0.7) !important;
-    color: #ffffff !important;
-    border: 3px solid rgba(255, 255, 255, 0.6) !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
-    font-weight: 700 !important;
-  }
-
-  .session-input:focus {
-    background: rgba(0, 0, 0, 0.8) !important;
-    border-color: #3b82f6 !important;
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6) !important;
-  }
-
-  .session-input::placeholder {
-    color: rgba(255, 255, 255, 0.8) !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
-  }
-
-  /* Enhanced visibility for all info boxes and cards */
-  .info-box,
-  .progress-box,
-  .qr-box,
-  .receiver-info,
-  .receiver-progress,
-  .receiver-success,
-  .receiver-session-card,
-  .receiver-status-card,
-  .file-info-card,
-  .progress-section,
-  .instructions,
-  .receiver-hint,
-  .selected-file {
-    background: rgba(0, 0, 0, 0.75) !important;
-    border: 2px solid rgba(255, 255, 255, 0.4) !important;
-    backdrop-filter: blur(15px) !important;
-  }
-
-  /* File drop zone enhanced visibility */
-  .file-drop-zone {
-    background: rgba(0, 0, 0, 0.6) !important;
-    border: 3px dashed rgba(255, 255, 255, 0.7) !important;
-  }
-
-  .file-drop-zone:hover {
-    background: rgba(0, 0, 0, 0.7) !important;
-    border-color: rgba(255, 255, 255, 0.9) !important;
-  }
-
-  /* Enhance text visibility in all cards and sections */
-  .info-title,
-  .progress-title,
-  .receiver-title-bar,
-  .info-text,
-  .progress-sub,
-  .qr-text,
-  .receiver-text,
-  .file-name,
-  .file-meta,
-  .progress-label,
-  .progress-percentage,
-  .received-size {
-    color: #ffffff !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
-    font-weight: 600 !important;
-  }
-
-  /* Fix instruction and hint text with strong contrast */
-  .instructions-title {
-    color: #ffffff !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
-    font-weight: 700 !important;
-  }
-
-  .instructions-list li {
-    color: #ffffff !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
-    background: rgba(0, 0, 0, 0.6) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    font-weight: 500 !important;
-  }
-
-  .instructions-list li .step-number {
-    background: rgba(255, 255, 255, 0.9) !important;
-    color: #000000 !important;
-    font-weight: 800 !important;
-  }
-
-  .hint-text {
-    color: #ffffff !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
-    font-weight: 500 !important;
-  }
-
-  .hint-text strong {
-    color: #ffffff !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
-    font-weight: 800 !important;
-  }
-
-  /* Enhanced file drop zone text */
-  .file-drop-text {
-    color: #ffffff !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
-    font-weight: 700 !important;
-  }
-
-  .file-drop-subtext {
-    color: #ffffff !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
-    font-weight: 600 !important;
-  }
-
-  /* Enhanced session ID and labels visibility */
-  .session-label,
-  .session-id,
-  .input-label {
-    color: #ffffff !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
-    font-weight: 700 !important;
-  }
-
-  .session-id {
-    background: rgba(0, 0, 0, 0.8) !important;
-    border: 2px solid rgba(255, 255, 255, 0.5) !important;
-  }
-
-  /* QR code enhanced contrast */
-  .qr-code {
-    background: rgba(255, 255, 255, 0.98) !important;
-    color: #000000 !important;
-    border: 3px solid rgba(0, 0, 0, 0.3) !important;
-    font-weight: 700 !important;
-  }
-
-  /* Enhanced connection indicator */
-  .indicator-text {
-    color: #ffffff !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
-    font-weight: 700 !important;
-  }
-
-  .connection-indicator {
-    border: 2px solid rgba(255, 255, 255, 0.4) !important;
-  }
-
-  /* Enhanced device card text visibility */
-  .device-title {
-    color: #ffffff !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
-    font-weight: 700 !important;
-  }
-
-  .detail-label,
-  .detail-value {
-    color: #ffffff !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
-    font-weight: 600 !important;
-  }
-
-  /* Enhanced success/error card text */
-  .success-title,
-  .success-message,
-  .success-file-name,
-  .success-file-size,
-  .error-title,
-  .error-message {
-    color: #ffffff !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
-    font-weight: 600 !important;
-  }
-
-  /* Enhanced waiting and status text */
-  .waiting-text {
-    color: #ffffff !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
-    font-weight: 600 !important;
-  }
-
-  /* Enhanced button visibility */
-  .btn {
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
-    font-weight: 700 !important;
-    border-width: 2px !important;
-  }
-
-  .btn-primary {
-    border-color: rgba(59, 130, 246, 0.8) !important;
-  }
-
-  .btn-success {
-    border-color: rgba(16, 185, 129, 0.8) !important;
-  }
-
-  .btn-danger {
-    border-color: rgba(239, 68, 68, 0.8) !important;
-  }
-
-  /* Enhanced list items */
-  .info-list li {
-    color: #ffffff !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
-    background: rgba(0, 0, 0, 0.6) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    font-weight: 500 !important;
-  }
-
-  /* Enhanced progress elements */
-  .progress-percentage {
-    color: #4ade80 !important;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
-    font-weight: 800 !important;
-  }
-
-  .file-speed {
-    color: #4ade80 !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
-    font-weight: 700 !important;
-  }
-
-  .file-eta {
-    color: #60a5fa !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
-    font-weight: 700 !important;
   }
 }
 
@@ -1679,14 +1397,162 @@ body::before {
   }
 }
 
-/* Mobile layout - keep original glassmorphism colors, remove dark overrides */
+/* Mobile layout - match exact desktop glassmorphism opacity values */
 @media (max-width: 768px) {
-  /* Reset all dark mobile overrides to match desktop */
+  /* Use exact same opacity values as desktop */
   .sender-box,
   .receiver-box {
-    background: rgba(255, 255, 255, 0.25) !important; /* Same as desktop */
-    border: 1px solid rgba(255, 255, 255, 0.18) !important; /* Same as desktop */
+    background: rgba(255, 255, 255, 0.25) !important; /* Exact desktop match */
+    border: 1px solid rgba(255, 255, 255, 0.18) !important; /* Exact desktop match */
     backdrop-filter: blur(20px) !important;
+  }
+  
+  /* Tab navigation - exact desktop opacity */
+  .tab-navigation {
+    background: rgba(255, 255, 255, 0.05) !important; /* Exact desktop match */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important; /* Exact desktop match */
+  }
+  
+  .tab-btn {
+    background: transparent !important; /* Exact desktop match */
+    color: rgba(255, 255, 255, 0.7) !important; /* Exact desktop match */
+    text-shadow: none !important;
+    border: none !important;
+  }
+  
+  .tab-btn:hover {
+    color: rgba(255, 255, 255, 0.9) !important; /* Exact desktop match */
+    background: rgba(255, 255, 255, 0.1) !important; /* Exact desktop match */
+  }
+  
+  .tab-btn.active {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important; /* Exact desktop match */
+    color: white !important;
+  }
+  
+  /* Cards and info boxes - exact desktop opacity */
+  .info-box,
+  .qr-box,
+  .progress-box,
+  .instructions,
+  .selected-file,
+  .device-card,
+  .receiver-info,
+  .receiver-progress,
+  .receiver-success,
+  .receiver-session-card,
+  .receiver-status-card,
+  .file-info-card,
+  .progress-section,
+  .success-card,
+  .error-card {
+    background: rgba(255, 255, 255, 0.08) !important; /* Exact desktop match */
+    border: 1px solid rgba(255, 255, 255, 0.15) !important; /* Exact desktop match */
+    backdrop-filter: blur(15px) !important; /* Exact desktop match */
+  }
+  
+  /* Special case for receiver session card - exact desktop match */
+  .receiver-session-card {
+    background: rgba(255, 255, 255, 0.1) !important; /* Exact desktop match */
+    backdrop-filter: blur(10px) !important; /* Exact desktop match */
+    border: 1px solid rgba(255, 255, 255, 0.2) !important; /* Exact desktop match */
+  }
+  
+  /* Special case for file info card - exact desktop match */
+  .file-info-card {
+    background: rgba(255, 255, 255, 0.1) !important; /* Exact desktop match */
+    backdrop-filter: blur(10px) !important; /* Exact desktop match */
+    border: 1px solid rgba(255, 255, 255, 0.2) !important; /* Exact desktop match */
+  }
+  
+  /* Session ID component - exact desktop match */
+  .session-id {
+    background: rgba(255, 255, 255, 0.15) !important; /* Exact desktop match */
+    border: 1px solid rgba(255, 255, 255, 0.2) !important; /* Exact desktop match */
+  }
+  
+  /* Connection indicators - exact desktop match */
+  .connection-indicator {
+    border: 1px solid rgba(255, 255, 255, 0.2) !important; /* Exact desktop match */
+    backdrop-filter: blur(5px) !important; /* Exact desktop match */
+  }
+  
+  .connection-indicator.connecting {
+    background: rgba(251, 191, 36, 0.2) !important; /* Exact desktop match */
+    border-color: rgba(251, 191, 36, 0.3) !important; /* Exact desktop match */
+  }
+  
+  .connection-indicator.waiting {
+    background: rgba(59, 130, 246, 0.2) !important; /* Exact desktop match */
+    border-color: rgba(59, 130, 246, 0.3) !important; /* Exact desktop match */
+  }
+  
+  .connection-indicator.receiving {
+    background: rgba(16, 185, 129, 0.2) !important; /* Exact desktop match */
+    border-color: rgba(16, 185, 129, 0.3) !important; /* Exact desktop match */
+  }
+  
+  .connection-indicator.completed {
+    background: rgba(34, 197, 94, 0.2) !important; /* Exact desktop match */
+    border-color: rgba(34, 197, 94, 0.3) !important; /* Exact desktop match */
+  }
+  
+  .connection-indicator.error {
+    background: rgba(239, 68, 68, 0.2) !important; /* Exact desktop match */
+    border-color: rgba(239, 68, 68, 0.3) !important; /* Exact desktop match */
+  }
+  
+  /* Input fields - exact desktop opacity */
+  .session-input {
+    background: rgba(255, 255, 255, 0.1) !important; /* Exact desktop match */
+    border: 2px solid rgba(255, 255, 255, 0.2) !important; /* Exact desktop match */
+    color: #ffffff !important;
+  }
+  
+  .session-input:focus {
+    background: rgba(255, 255, 255, 0.15) !important; /* Exact desktop match */
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3) !important;
+  }
+  
+  .session-input::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important; /* Exact desktop match */
+  }
+  
+  /* Receiver hint - exact desktop opacity */
+  .receiver-hint {
+    background: rgba(59, 130, 246, 0.1) !important; /* Exact desktop match */
+    border: 1px solid rgba(59, 130, 246, 0.2) !important; /* Exact desktop match */
+    backdrop-filter: blur(10px) !important; /* Exact desktop match */
+  }
+  
+  /* Enhanced instructions - exact desktop opacity */
+  .instructions {
+    background: rgba(255, 255, 255, 0.1) !important; /* Exact desktop match */
+    border: 1px solid rgba(255, 255, 255, 0.2) !important; /* Exact desktop match */
+    backdrop-filter: blur(10px) !important; /* Exact desktop match */
+  }
+  
+  /* QR code - keep white background for scannability */
+  .qr-code {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #374151 !important;
+  }
+  
+  /* File drop zone - exact desktop opacity */
+  .file-drop-zone {
+    background: rgba(255, 255, 255, 0.05) !important; /* Exact desktop match */
+    border: 2px dashed rgba(255, 255, 255, 0.3) !important; /* Exact desktop match */
+  }
+  
+  .file-drop-zone:hover {
+    background: rgba(255, 255, 255, 0.1) !important; /* Exact desktop match */
+    border-color: rgba(255, 255, 255, 0.6) !important; /* Exact desktop match */
+  }
+  
+  .file-drop-zone.drag-over {
+    border-color: #4ade80 !important;
+    background: rgba(74, 222, 128, 0.1) !important; /* Exact desktop match */
   }
   
   /* Keep original text colors - remove dark overrides */
@@ -1711,62 +1577,20 @@ body::before {
     font-weight: inherit !important; /* Use default font weights */
   }
   
-  /* Tab navigation - keep original styling */
-  .tab-navigation {
-    background: rgba(255, 255, 255, 0.3) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  /* Step numbers - exact desktop match */
+  .instructions-list li .step-number {
+    background: rgba(255, 255, 255, 0.2) !important; /* Exact desktop match */
   }
   
-  .tab-btn {
-    background: rgba(255, 255, 255, 0.2) !important;
-    color: inherit !important;
-    text-shadow: none !important;
-    border: none !important;
+  /* Device icons - exact desktop match */
+  .device-icon {
+    background: rgba(255, 255, 255, 0.1) !important; /* Exact desktop match */
+    border: 2px solid rgba(255, 255, 255, 0.2) !important; /* Exact desktop match */
   }
   
-  .tab-btn.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    color: white !important;
-  }
-  
-  /* Cards and info boxes - keep original glassmorphism */
-  .info-box,
-  .qr-box,
-  .progress-box,
-  .instructions,
-  .selected-file,
-  .device-card {
-    background: rgba(255, 255, 255, 0.2) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    backdrop-filter: blur(10px) !important;
-  }
-  
-  /* Input fields - keep original styling */
-  .session-input {
-    background: rgba(255, 255, 255, 0.2) !important;
-    border: 2px solid rgba(255, 255, 255, 0.3) !important;
-    color: inherit !important;
-  }
-  
-  .session-input::placeholder {
-    color: rgba(255, 255, 255, 0.7) !important;
-  }
-  
-  /* QR code - keep white background for scannability */
-  .qr-code {
-    background: rgba(255, 255, 255, 0.95) !important;
-    color: #333 !important;
-  }
-  
-  /* File drop zone - keep original styling */
-  .file-drop-zone {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border: 2px dashed rgba(255, 255, 255, 0.4) !important;
-  }
-  
-  .file-drop-zone.drag-over {
-    background: rgba(255, 255, 255, 0.2) !important;
-    border-color: rgba(255, 255, 255, 0.6) !important;
+  /* List items - exact desktop match */
+  .info-list li {
+    background: rgba(255, 255, 255, 0.1) !important; /* Exact desktop match */
   }
   
   /* Mobile responsive layout */
