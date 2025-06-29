@@ -135,7 +135,6 @@ body::before {
   font-weight: 700;
   color: #ffffff;
   margin-bottom: 0.5rem;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
   letter-spacing: -0.02em;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -148,25 +147,23 @@ body::before {
 .receiver-title:hover {
   color: #3b82f6;
   transform: translateY(-2px);
-  text-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
 }
 
 .receiver-subtitle {
   text-align: center;
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: #1e293b;
   margin-bottom: 1.5rem;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .sender-subtext,
 .receiver-status {
   text-align: center;
-  color: rgba(255, 255, 255, 0.8);
   margin-bottom: 2rem;
   font-size: 1rem;
   line-height: 1.6;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 /* Tab Navigation */
@@ -191,14 +188,15 @@ body::before {
   cursor: pointer;
   transition: all 0.3s ease;
   background: transparent;
-  color: rgba(255, 255, 255, 0.7);
+  color: #1e293b;
   position: relative;
   overflow: hidden;
 }
 
 .tab-btn:hover {
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.1);
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
 }
 
 .tab-btn.active {
@@ -412,15 +410,16 @@ body::before {
 }
 
 .file-drop-text {
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
+  color: #1e293b;
+  font-weight: 600;
   margin-bottom: 0.5rem;
   font-size: 1.1rem;
 }
 
 .file-drop-subtext {
-  color: rgba(255, 255, 255, 0.6);
+  color: #475569;
   font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .file-input {
@@ -662,7 +661,6 @@ body::before {
   font-size: 1.1rem;
   font-weight: 600;
   color: #ffffff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .qr-image {
@@ -1181,7 +1179,6 @@ body::before {
   font-size: 1.1rem;
   font-weight: 600;
   margin: 0 0 0.25rem 0;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .device-status {
@@ -1220,7 +1217,6 @@ body::before {
   font-size: 0.85rem;
   font-weight: 600;
   text-align: right;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* Responsive device cards */
@@ -1414,15 +1410,16 @@ body::before {
   }
   
   .tab-btn {
-    background: transparent !important; /* Exact desktop match */
-    color: rgba(255, 255, 255, 0.7) !important; /* Exact desktop match */
-    text-shadow: none !important;
+    background: transparent !important;
+    color: #1f2937 !important; /* Dark gray for better contrast on light background */
     border: none !important;
+    font-weight: 600 !important; /* Make text bolder for better readability */
   }
   
   .tab-btn:hover {
-    color: rgba(255, 255, 255, 0.9) !important; /* Exact desktop match */
-    background: rgba(255, 255, 255, 0.1) !important; /* Exact desktop match */
+    color: #111827 !important; /* Even darker on hover for better contrast */
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-1px) !important;
   }
   
   .tab-btn.active {
@@ -1573,8 +1570,36 @@ body::before {
   .session-label,
   .input-label {
     color: inherit !important; /* Use default colors */
-    text-shadow: none !important; /* Remove dark text shadows */
     font-weight: inherit !important; /* Use default font weights */
+  }
+
+  /* Mobile-specific text contrast fixes for better readability on light glassmorphism */
+  .sender-subtext,
+  .receiver-status {
+    color: #ffffff !important; /* Dark gray for good contrast */
+    font-weight: 600 !important;
+  }
+
+  .file-drop-text {
+    color: #1f2937 !important; /* Dark gray for contrast */
+    font-weight: 700 !important; /* Bolder for better readability */
+  }
+
+  .file-drop-subtext {
+    color: #4b5563 !important; /* Medium gray for contrast */
+    font-weight: 600 !important;
+  }
+
+  .instructions-title,
+  .info-title {
+    color: #1f2937 !important; /* Dark gray for contrast */
+    font-weight: 700 !important;
+  }
+
+  .instructions-list li,
+  .info-text {
+    color: #374151 !important; /* Dark gray for contrast */
+    font-weight: 500 !important;
   }
   
   /* Step numbers - exact desktop match */
@@ -1690,4 +1715,46 @@ body::before {
   .sender-right-section > *:last-child {
     margin-bottom: 0;
   }
+}
+
+/* Additional mobile text contrast fixes */
+.session-label,
+.input-label {
+  color: #1f2937 !important; /* Dark gray for contrast */
+  font-weight: 600 !important;
+}
+
+.hint-text,
+.qr-text {
+  color: #374151 !important; /* Dark gray for contrast */
+  font-weight: 500 !important;
+}
+
+.hint-text strong {
+  color: #1f2937 !important; /* Darker for emphasis */
+  font-weight: 700 !important;
+}
+
+/* Device card text contrast */
+.device-card h3,
+.device-card p {
+  color: #374151 !important;
+}
+
+.device-card h3 {
+  font-weight: 600 !important;
+}
+
+/* Status and progress text */
+.connection-status,
+.progress-text,
+.status-text {
+  color: #1f2937 !important;
+  font-weight: 600 !important;
+}
+
+/* Session ID text */
+.session-id {
+  color: #1f2937 !important;
+  font-weight: 600 !important;
 }
