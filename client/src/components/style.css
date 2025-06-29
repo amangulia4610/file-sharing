@@ -41,7 +41,7 @@ body::before {
 
 .sender-container,
 .receiver-container {
-  min-height: 100vh;
+  min-height: 80vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -53,8 +53,10 @@ body::before {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  min-height: 100vh;
-  padding: 2rem 1rem;
+  min-height: 90vh;
+  max-height: 100vh;
+  padding: 1rem;
+  overflow: hidden;
 }
 
 .sender-box,
@@ -79,11 +81,13 @@ body::before {
 .sender-box {
   background: rgba(255, 255, 255, 0.25);
   backdrop-filter: blur(20px);
-  border-radius: 20px;
+  border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.18);
-  padding: 2rem;
+  padding: 1.5rem;
   width: 100%;
-  max-width: 1200px; /* Increased for better desktop experience */
+  max-width: 1000px;
+  max-height: 95vh;
+  overflow-y: auto;
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
 }
 
@@ -127,12 +131,24 @@ body::before {
 .sender-title,
 .receiver-title {
   text-align: center;
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   font-weight: 700;
   color: #ffffff;
   margin-bottom: 0.5rem;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
   letter-spacing: -0.02em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  width: 100%;
+}
+
+.sender-title:hover,
+.receiver-title:hover {
+  color: #3b82f6;
+  transform: translateY(-2px);
+  text-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
 }
 
 .receiver-subtitle {
@@ -157,7 +173,7 @@ body::before {
 .tab-navigation {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   padding: 0.5rem;
@@ -298,8 +314,8 @@ body::before {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 16px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
   backdrop-filter: blur(10px);
 }
 
@@ -349,7 +365,7 @@ body::before {
 /* Drag and Drop File Area */
 .file-drop-zone {
   width: 100%;
-  min-height: 140px;
+  min-height: 120px;
   border: 2px dashed rgba(255, 255, 255, 0.3);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.05);
@@ -358,7 +374,7 @@ body::before {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
@@ -448,7 +464,7 @@ body::before {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .btn {
@@ -542,9 +558,9 @@ body::before {
 .receiver-success {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 1.5rem;
-  border-radius: 20px;
-  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: 16px;
+  margin-bottom: 1rem;
   backdrop-filter: blur(15px);
   transition: all 0.3s ease;
   position: relative;
@@ -1524,31 +1540,31 @@ body::before {
 @media (min-width: 769px) {
   /* Normal width before session creation */
   .sender-container {
-    max-width: 900px;
+    max-width: 800px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 1rem;
   }
   
   .sender-box {
     max-width: 100%;
-    padding: 2rem;
+    padding: 1.5rem;
   }
   
   /* Expanded layout when session is created */
   .sender-container.session-active {
-    max-width: 1400px;
-    padding: 2rem;
+    max-width: 1200px;
+    padding: 1rem;
   }
   
   .sender-box.session-active {
     max-width: 100%;
-    padding: 3rem;
+    padding: 2rem;
   }
   
   .sender-content-layout {
     display: flex;
-    gap: 3rem;
-    margin-top: 2rem;
+    gap: 2rem;
+    margin-top: 1rem;
     align-items: stretch; /* Equal height columns */
   }
   
@@ -1568,8 +1584,8 @@ body::before {
   
   /* Make sections fill available height equally */
   .file-drop-zone {
-    min-height: 200px;
-    padding: 3rem 2rem;
+    min-height: 150px;
+    padding: 2rem 1.5rem;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -1577,17 +1593,17 @@ body::before {
   }
   
   .info-box {
-    padding: 2rem;
-    min-height: 300px;
+    padding: 1.5rem;
+    min-height: 200px;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
   }
   
   .qr-box {
-    padding: 2rem;
-    min-height: 250px;
-    margin-top: 1.5rem;
+    padding: 1.5rem;
+    min-height: 180px;
+    margin-top: 1rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -1596,19 +1612,19 @@ body::before {
   /* Ensure button groups are at bottom of left section */
   .sender-left-section .btn-group {
     margin-top: auto;
-    padding-top: 1.5rem;
+    padding-top: 1rem;
   }
   
   /* Progress box styling for consistency */
   .progress-box {
-    margin-top: 1.5rem;
-    padding: 2rem;
-    min-height: 150px;
+    margin-top: 1rem;
+    padding: 1.5rem;
+    min-height: 100px;
   }
   
   /* Ensure consistent spacing within sections */
   .sender-left-section > * {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
   }
   
   .sender-left-section > *:last-child {
@@ -1616,7 +1632,7 @@ body::before {
   }
   
   .sender-right-section > * {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
   }
   
   .sender-right-section > *:last-child {
@@ -1625,13 +1641,13 @@ body::before {
   
   /* Make selected file card more compact */
   .selected-file {
-    margin-bottom: 1rem;
-    padding: 1rem;
+    margin-bottom: 0.8rem;
+    padding: 0.8rem;
   }
   
   /* Ensure info box content is properly spaced */
   .info-box .info-title {
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
   }
   
   .info-box .info-text {

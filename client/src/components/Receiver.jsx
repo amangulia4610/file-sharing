@@ -456,7 +456,11 @@ export default function Receiver() {
   return (
     <div className="receiver-container">
       <div className="receiver-box">
-        <h1 className="receiver-title">📥 The File Share - Receiver</h1>
+        <h1 className="receiver-title">
+          <a href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+            📥 The File Share - Receiver
+          </a>
+        </h1>
         <p className="receiver-subtitle">📶 Receiving files via WiFi connection</p>
         
         {/* Session Info Card */}
