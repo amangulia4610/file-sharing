@@ -360,16 +360,32 @@ export default function Receiver() {
      * for file transfer, and manages the complete receiving workflow.
      */
     const setupConnection = () => {
-      // Create WebRTC peer connection with multiple STUN servers for better mobile compatibility
+      // Create WebRTC peer connection with multiple STUN/TURN servers for better mobile compatibility
       const pc = new RTCPeerConnection({
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },      // Google STUN server 1
           { urls: 'stun:stun1.l.google.com:19302' },     // Google STUN server 2
           { urls: 'stun:stun2.l.google.com:19302' },     // Google STUN server 3
           { urls: 'stun:stun3.l.google.com:19302' },     // Google STUN server 4
-          { urls: 'stun:stun4.l.google.com:19302' }      // Google STUN server 5
+          { urls: 'stun:stun4.l.google.com:19302' },     // Google STUN server 5
+          // Add more STUN servers for better connectivity
+          { urls: 'stun:stun.stunprotocol.org:3478' },
+          { urls: 'stun:stun.voiparound.com:3478' },
+          { urls: 'stun:stun.voipbuster.com:3478' },
+          // Free TURN servers for better NAT traversal
+          { 
+            urls: 'turn:openrelay.metered.ca:80',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+          },
+          { 
+            urls: 'turn:openrelay.metered.ca:443',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+          }
         ],
-        iceCandidatePoolSize: 10  // Increase ICE candidate pool for better connectivity
+        iceCandidatePoolSize: 10,  // Increase ICE candidate pool for better connectivity
+        iceTransportPolicy: 'all'  // Use all available transport methods
       });
 
       // Add cleanup function for peer connection
@@ -656,8 +672,12 @@ export default function Receiver() {
           setStatus('WebRTC connection established!');
         } else if (pc.connectionState === 'failed') {
           console.error('Receiver: WebRTC connection failed');
-          setStatus('Connection failed - please try again');
+          setStatus('Connection failed - retrying with new offer...');
           setConnectionState('error');
+          // Request a new offer from sender
+          socket.emit('request-new-offer', { session });
+        } else if (pc.connectionState === 'disconnected') {
+          setStatus('Connection lost - attempting to reconnect...');
         }
       };
 
@@ -665,6 +685,14 @@ export default function Receiver() {
         console.log('Receiver: ICE connection state changed to', pc.iceConnectionState);
         if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
           setStatus('Connected! Ready to receive files...');
+        } else if (pc.iceConnectionState === 'failed') {
+          console.error('Receiver: ICE connection failed, attempting restart...');
+          setStatus('Connection failed, retrying...');
+          // Attempt ICE restart
+          pc.restartIce();
+        } else if (pc.iceConnectionState === 'disconnected') {
+          console.warn('Receiver: ICE connection disconnected');
+          setStatus('Connection lost, attempting to reconnect...');
         }
       };
 

@@ -376,16 +376,32 @@ export default function Sender() {
     // Notify all devices in session that transfer is starting
     socket.emit('transfer-start', { session: currentSession, fileName: file.name, fileSize: file.size });
 
-    // Create WebRTC peer connection with multiple STUN servers for better mobile compatibility
+    // Create WebRTC peer connection with multiple STUN/TURN servers for better mobile compatibility
     const pc = new RTCPeerConnection({ 
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },      // Google STUN server 1
         { urls: 'stun:stun1.l.google.com:19302' },     // Google STUN server 2
         { urls: 'stun:stun2.l.google.com:19302' },     // Google STUN server 3
         { urls: 'stun:stun3.l.google.com:19302' },     // Google STUN server 4
-        { urls: 'stun:stun4.l.google.com:19302' }      // Google STUN server 5
+        { urls: 'stun:stun4.l.google.com:19302' },     // Google STUN server 5
+        // Add more STUN servers for better connectivity
+        { urls: 'stun:stun.stunprotocol.org:3478' },
+        { urls: 'stun:stun.voiparound.com:3478' },
+        { urls: 'stun:stun.voipbuster.com:3478' },
+        // Free TURN servers for better NAT traversal
+        { 
+          urls: 'turn:openrelay.metered.ca:80',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        { 
+          urls: 'turn:openrelay.metered.ca:443',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        }
       ],
-      iceCandidatePoolSize: 10  // Increase ICE candidate pool for better connectivity
+      iceCandidatePoolSize: 10,  // Increase ICE candidate pool for better connectivity
+      iceTransportPolicy: 'all'  // Use all available transport methods
     });
     setPeerConnection(pc);
     
@@ -432,7 +448,9 @@ export default function Sender() {
     pc.oniceconnectionstatechange = () => {
       console.log('Sender: ICE connection state changed to', pc.iceConnectionState);
       if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
-        console.error('Sender: ICE connection failed or disconnected');
+        console.error('Sender: ICE connection failed or disconnected, attempting restart...');
+        // Attempt ICE restart
+        pc.restartIce();
       }
     };
 

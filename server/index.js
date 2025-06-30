@@ -354,6 +354,21 @@ io.on('connection', (socket) => {
       }
     }
   });
+
+  // ==========================================================================
+  // CONNECTION RETRY MECHANISM
+  // ==========================================================================
+
+  /**
+   * Handle request for new offer (connection retry)
+   * 
+   * When WebRTC connection fails, receiver can request a new offer
+   * from the sender to attempt reconnection.
+   */
+  socket.on('request-new-offer', ({ session }) => {
+    console.log(`New offer requested by ${socket.id} for session ${session}`);
+    socket.to(session).emit('request-new-offer', { session });
+  });
 });
 
 // ============================================================================
