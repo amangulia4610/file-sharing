@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/', // Use root path for custom domain
+  base: process.env.NODE_ENV === 'production' ? '/file-sharing/' : '/', // GitHub Pages path
   server: {
     host: '0.0.0.0', // Bind to all network interfaces
     port: 5173,
