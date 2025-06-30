@@ -1,15 +1,67 @@
-# 📤 P2P File Sharing App
+# 📤 The File Share - P2P File Sharing App
 
-A modern, secure peer-to-peer file sharing application built with React and Socket.IO that allows you to share files directly between devices on your local network.
+A modern, secure peer-to-peer file sharing application built with React and Socket.IO that allows you to share files directly between devices on your local WiFi network. This project features comprehensive code documentation, glassmorphism design, and enterprise-ready architecture.
 
 ## ✨ Features
 
 - 🔐 **Secure P2P Transfer**: Direct device-to-device file transfer using WebRTC
-- 📱 **Cross-Platform**: Works on desktop and mobile devices
+- 📱 **Cross-Platform**: Works seamlessly on desktop and mobile devices
 - 🎯 **QR Code Sharing**: Easy connection via QR code scanning
-- 📊 **Real-time Progress**: Live transfer progress tracking
-- 🌐 **Local Network**: No internet required, works on local networks
-- 🎨 **Modern UI**: Beautiful, responsive interface with Tailwind CSS
+- 📊 **Real-time Progress**: Live transfer progress tracking with speed calculations
+- 🌐 **Local Network**: No internet required, works entirely on local WiFi networks
+- 🎨 **Modern UI**: Beautiful, responsive glassmorphism interface
+- 📚 **Comprehensive Documentation**: Extensively commented codebase for easy maintenance
+- 🔄 **Session Management**: Robust session creation and device connection handling
+- 📱 **Mobile Optimized**: Touch-friendly interface with responsive design
+
+## 🏗️ Architecture Overview
+
+### Frontend (React + Vite)
+- **Modern React**: Uses React 19 with hooks for state management
+- **Component Architecture**: Modular components (Sender, Receiver, App)
+- **Real-time Communication**: Socket.IO client for signaling
+- **WebRTC Integration**: Peer-to-peer data channels for file transfer
+- **Responsive Design**: Mobile-first approach with glassmorphism UI
+
+### Backend (Node.js + Express)
+- **Signaling Server**: Coordinates WebRTC connections between devices
+- **Session Management**: In-memory session storage with device tracking
+- **Socket.IO Integration**: Real-time bidirectional communication
+- **CORS Configuration**: Secure cross-origin request handling
+- **Environment Support**: Development and production configurations
+
+### P2P File Transfer
+- **WebRTC Data Channels**: Direct browser-to-browser file transfer
+- **Chunked Transfer**: Reliable large file handling with 16KB chunks
+- **Progress Tracking**: Real-time progress updates and speed calculations
+- **Error Handling**: Robust connection state management and error recovery
+
+## 📚 Code Documentation
+
+This project features **comprehensive code documentation** throughout all files:
+
+### 📋 Documentation Standards
+- **File Headers**: Each file includes detailed purpose and architecture explanations
+- **Function Documentation**: JSDoc-style comments for all major functions
+- **Section Comments**: Clear separation of code sections with descriptive headers
+- **Inline Comments**: Detailed explanations of complex logic and important steps
+- **State Management**: Documented state variables and their purposes
+- **Event Handlers**: Explanation of all Socket.IO and WebRTC event handling
+
+### 🗂️ Documented Files
+- **`client/src/App.jsx`**: Main application component with routing
+- **`client/src/config.js`**: Environment configuration with setup instructions
+- **`client/src/components/Sender.jsx`**: Complete sender workflow with detailed comments
+- **`client/src/components/Receiver.jsx`**: File receiving logic with progress tracking
+- **`client/src/components/style.css`**: CSS with glassmorphism design documentation
+- **`server/index.js`**: Socket.IO server with comprehensive event handling docs
+
+### 💡 Key Documentation Features
+- **Architecture Explanations**: High-level system design and component interactions
+- **Workflow Documentation**: Step-by-step process flows for file sharing
+- **Error Handling**: Documented error scenarios and recovery mechanisms
+- **Performance Optimizations**: Explained memoization and state management strategies
+- **Security Considerations**: CORS, session management, and WebRTC security notes
 
 ## 🚀 Live Demo
 
@@ -18,10 +70,50 @@ A modern, secure peer-to-peer file sharing application built with React and Sock
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: React 19, Vite, Tailwind CSS
-- **Backend**: Node.js, Express, Socket.IO
-- **P2P**: WebRTC for direct file transfer
-- **Deployment**: GitHub Pages (client) + Render.com (server)
+### Frontend Technologies
+- **React 19**: Latest React with hooks and modern patterns
+- **Vite**: Fast build tool and development server
+- **Socket.IO Client**: Real-time communication with the server
+- **QRCode.react**: QR code generation for mobile device connections
+- **React Router**: Client-side routing for sender/receiver modes
+
+### Backend Technologies
+- **Node.js**: JavaScript runtime for server-side logic
+- **Express.js**: Minimal web framework for HTTP endpoints
+- **Socket.IO**: Real-time bidirectional event-based communication
+- **CORS**: Cross-Origin Resource Sharing middleware
+- **dotenv**: Environment variable management
+
+### Core Technologies
+- **WebRTC**: Browser-to-browser real-time communication
+- **Data Channels**: Direct peer-to-peer file transfer
+- **ICE/STUN**: NAT traversal for connection establishment
+
+## 💻 Development Approach & Code Quality
+
+### 📝 Extensive Code Documentation
+This project follows enterprise-level documentation standards:
+
+- **Header Comments**: Every file starts with comprehensive documentation explaining purpose, features, and architecture
+- **Function Documentation**: JSDoc-style comments for all major functions with parameters and return values
+- **Section Organization**: Code is organized into logical sections with clear separators
+- **Inline Explanations**: Complex logic is explained step-by-step with detailed comments
+- **State Documentation**: All React state variables are documented with their purposes
+- **Event Handler Docs**: Socket.IO and WebRTC events are thoroughly documented
+
+### 🏗️ Code Organization Principles
+- **Modular Architecture**: Separation of concerns between components
+- **Single Responsibility**: Each component has a clear, focused purpose
+- **State Management**: Organized state with clear data flow
+- **Error Handling**: Comprehensive error scenarios and recovery
+- **Performance**: Memoized values and optimized re-renders
+
+### 🎨 UI/UX Design
+- **Glassmorphism**: Modern glass-like visual effects
+- **Responsive Design**: Mobile-first approach with desktop optimization
+- **Consistent Theming**: Unified color scheme across desktop and mobile
+- **Accessibility**: Proper contrast ratios and readable typography
+- **Visual Feedback**: Real-time progress indicators and status updates
 
 ## 📁 Project Structure
 

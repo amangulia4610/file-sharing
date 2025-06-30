@@ -1,94 +1,147 @@
-/* Modern File Sharing App - Enhanced UI with Glassmorphism */
+/* ==========================================================================
+   THE FILE SHARE - MODERN GLASSMORPHISM UI STYLESHEET
+   ==========================================================================
+   
+   A comprehensive CSS file implementing a modern glassmorphism design for 
+   a peer-to-peer file sharing application. Features responsive design,
+   consistent styling across desktop and mobile, and sophisticated animations.
+   
+   Key Design Principles:
+   - Glassmorphism aesthetic with backdrop blur effects
+   - Unified color scheme and opacity values
+   - Responsive design with mobile-first approach
+   - Accessibility-focused (no text shadows, high contrast)
+   - Smooth animations and micro-interactions
+   
+   Author: Built with modern CSS3 features
+   Date: 2025
+   ========================================================================== */
 
+/* ==========================================================================
+   FONTS & GLOBAL RESET
+   ========================================================================== */
+
+/* Import Inter font family for modern, clean typography */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
+/* Global reset for consistent cross-browser styling */
 * {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
+  box-sizing: border-box; /* Include padding and border in element's total width/height */
 }
 
+/* ==========================================================================
+   BODY & BACKGROUND STYLES
+   ========================================================================== */
+
+/* Main body styling with gradient background and typography setup */
 body {
-  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  background-attachment: fixed;
-  min-height: 100vh;
-  overflow-x: hidden;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Font stack with fallbacks */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); /* Multi-color gradient */
+  background-attachment: fixed; /* Keep background fixed during scroll */
+  min-height: 100vh; /* Ensure full viewport height coverage */
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
-/* Animated background particles effect */
+/* ==========================================================================
+   ANIMATED BACKGROUND EFFECTS
+   ========================================================================== */
+
+/* Floating particle effect overlay using CSS pseudo-elements */
 body::before {
-  content: '';
-  position: fixed;
+  content: ''; /* Required for pseudo-element */
+  position: fixed; /* Stay in place during scroll */
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+  /* Create multiple radial gradients for particle effect */
   background: 
     radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
     radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
-  animation: float 20s ease-in-out infinite;
-  pointer-events: none;
-  z-index: -1;
+  animation: float 20s ease-in-out infinite; /* Slow floating animation */
+  pointer-events: none; /* Don't interfere with user interactions */
+  z-index: -1; /* Place behind all other content */
 }
 
+/* Floating animation keyframes for subtle background movement */
 @keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  33% { transform: translateY(-20px) rotate(2deg); }
-  66% { transform: translateY(10px) rotate(-1deg); }
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg); /* Start/end position */
+  }
+  33% { 
+    transform: translateY(-20px) rotate(2deg); /* Mid-point with slight rotation */
+  }
+  66% { 
+    transform: translateY(10px) rotate(-1deg); /* Counter-rotation for natural movement */
+  }
 }
 
+/* ==========================================================================
+   MAIN CONTAINER LAYOUTS
+   ========================================================================== */
+
+/* Base container styles for both sender and receiver pages */
 .sender-container,
 .receiver-container {
-  min-height: 80vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  position: relative;
+  min-height: 80vh; /* Minimum height to ensure proper spacing */
+  display: flex; /* Flexbox for centering content */
+  align-items: center; /* Vertical centering */
+  justify-content: center; /* Horizontal centering */
+  padding: 1rem; /* Consistent padding around content */
+  position: relative; /* Allow positioned children */
 }
 
+/* Specialized sender container with overflow control for desktop */
 .sender-container {
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  min-height: 90vh;
-  max-height: 100vh;
+  align-items: flex-start; /* Align to top for better content flow */
+  min-height: 90vh; /* Slightly taller than receiver */
+  max-height: 100vh; /* Prevent overflow on desktop */
   padding: 1rem;
-  overflow: hidden;
+  overflow: hidden; /* Hide overflow to prevent scrolling issues */
 }
 
+/* ==========================================================================
+   GLASSMORPHISM MAIN BOXES
+   ========================================================================== */
+
+/* Base styles for main content boxes with glassmorphism effect */
 .sender-box,
 .receiver-box {
-  width: 100%;
-  max-width: 500px;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 24px;
-  padding: 2.5rem;
+  width: 100%; /* Full width within container */
+  max-width: 500px; /* Reasonable max width for readability */
+  background: rgba(255, 255, 255, 0.12); /* Semi-transparent white background */
+  backdrop-filter: blur(20px); /* Glassmorphism blur effect */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border */
+  border-radius: 24px; /* Rounded corners for modern look */
+  padding: 2.5rem; /* Generous padding for content */
+  /* Complex shadow for depth and glassmorphism effect */
   box-shadow: 
-    0 25px 50px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.1);
-  animation: slideIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
+    0 25px 50px rgba(0, 0, 0, 0.1), /* Main shadow */
+    inset 0 1px 0 rgba(255, 255, 255, 0.3), /* Top highlight */
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1); /* Bottom subtle highlight */
+  animation: slideIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Entrance animation */
+  transition: all 0.3s ease; /* Smooth transitions for interactions */
+  position: relative; /* Allow positioned pseudo-elements */
+  overflow: hidden; /* Hide overflow for clean edges */
 }
 
+/* Specialized sender box with enhanced glassmorphism and responsive sizing */
 .sender-box {
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(20px);
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  padding: 1.5rem;
-  width: 100%;
-  max-width: 1000px;
-  max-height: 95vh;
-  overflow-y: auto;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  background: rgba(255, 255, 255, 0.25); /* More opaque for sender interface */
+  backdrop-filter: blur(20px); /* Consistent blur level */
+  border-radius: 16px; /* Slightly smaller radius */
+  border: 1px solid rgba(255, 255, 255, 0.18); /* Adjusted border opacity */
+  padding: 1.5rem; /* Compact padding for more content */
+  width: 100%; /* Full container width */
+  max-width: 1000px; /* Larger max width for two-column layout */
+  max-height: 95vh; /* Prevent overflow on small screens */
+  overflow-y: auto; /* Allow vertical scroll if needed */
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); /* Refined shadow */
 }
 
 .sender-box::before,

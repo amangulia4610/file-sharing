@@ -1,41 +1,110 @@
-// File: client/src/components/Sender.jsx
-import { useRef, useState } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
-import io from 'socket.io-client';
-import config from '../config.js';
-import './style.css';
+/**
+ * ============================================================================
+ * The File Share - Sender Component
+ * ============================================================================
+ * 
+ * This component handles the file sending functionality of the application.
+ * It provides a comprehensive interface for creating sessions, managing
+ * connections, and transferring files via WebRTC over WiFi networks.
+ * 
+ * KEY FEATURES:
+ * - Session creation with QR code generation
+ * - Real-time device connection monitoring
+ * - Drag & drop file upload interface
+ * - WebRTC peer-to-peer file transfer
+ * - Progress tracking with speed calculations
+ * - Responsive design for desktop and mobile
+ * - Tab-based navigation (Send/Receive modes)
+ * 
+ * TECHNICAL IMPLEMENTATION:
+ * - Uses Socket.IO for signaling and session management
+ * - WebRTC for direct peer-to-peer file transfer
+ * - QR code generation for easy mobile device connection
+ * - Chunked file transfer for reliable large file handling
+ * - Device fingerprinting for connection identification
+ * 
+ * Author: File Share Team
+ * Last Updated: 2024
+ * ============================================================================
+ */
 
+// React hooks for state management and lifecycle
+import { useRef, useState } from 'react';
+
+// Third-party libraries
+import { QRCodeSVG } from 'qrcode.react';  // QR code generation for mobile scanning
+import io from 'socket.io-client';         // Socket.IO client for real-time communication
+
+// Application configuration and styles
+import config from '../config.js';          // Environment-specific server configuration
+import './style.css';                       // Component styles with glassmorphism design
+
+// Initialize Socket.IO connection to signaling server
 const socket = io(config.SOCKET_URL);
 
+/**
+ * Main Sender Component
+ * 
+ * Manages the entire file sending workflow from session creation to file transfer.
+ * Includes both sender and receiver input modes via tab navigation.
+ */
 export default function Sender() {
-  const fileInputRef = useRef();
-  const [sessionId, setSessionId] = useState('');
-  const [qrCode, setQrCode] = useState('');
-  const [isTransferring, setIsTransferring] = useState(false);
-  const [peerConnection, setPeerConnection] = useState(null);
-  const [connectedDevices, setConnectedDevices] = useState([]);
-  const [transferProgress, setTransferProgress] = useState(0);
-  const [transferSpeed, setTransferSpeed] = useState(0);
-  const [currentFile, setCurrentFile] = useState(null);
-  const [isDragOver, setIsDragOver] = useState(false);
-  const [linkCopied, setLinkCopied] = useState(false);
-  const [sessionIdCopied, setSessionIdCopied] = useState(false);
+  // ============================================================================
+  // STATE MANAGEMENT
+  // ============================================================================
   
-  // Tab system states
-  const [activeTab, setActiveTab] = useState('send'); // 'send' or 'receive'
+  // File handling refs and state
+  const fileInputRef = useRef();                    // Reference to hidden file input element
+  const [currentFile, setCurrentFile] = useState(null);     // Currently selected file object
+  const [isDragOver, setIsDragOver] = useState(false);      // Drag & drop visual feedback
   
-  // Receiver mode states (simplified for input only)
-  const [receiverSessionId, setReceiverSessionId] = useState('');
+  // Session and connection state
+  const [sessionId, setSessionId] = useState('');           // Generated session identifier
+  const [qrCode, setQrCode] = useState('');                 // QR code URL for mobile scanning
+  const [connectedDevices, setConnectedDevices] = useState([]); // List of connected receiver devices
+  
+  // WebRTC and transfer state
+  const [peerConnection, setPeerConnection] = useState(null); // WebRTC peer connection object
+  const [isTransferring, setIsTransferring] = useState(false); // Transfer in progress flag
+  const [transferProgress, setTransferProgress] = useState(0); // Transfer progress percentage
+  const [transferSpeed, setTransferSpeed] = useState(0);      // Current transfer speed (bytes/sec)
+  
+  // UI interaction state
+  const [linkCopied, setLinkCopied] = useState(false);       // QR code link copy feedback
+  const [sessionIdCopied, setSessionIdCopied] = useState(false); // Session ID copy feedback
+  
+  // Tab navigation state
+  const [activeTab, setActiveTab] = useState('send');        // Current active tab ('send' or 'receive')
+  
+  // Receiver mode state (simplified input mode for redirecting to proper receiver)
+  const [receiverSessionId, setReceiverSessionId] = useState(''); // Session ID input for joining sessions
+
+  // ============================================================================
+  // DEVICE INFORMATION & FINGERPRINTING
+  // ============================================================================
+  
+  /**
+   * Generate comprehensive device information for connection identification
+   * 
+   * This function creates a device fingerprint that helps identify and display
+   * connected devices in a user-friendly way. It detects device type, OS,
+   * browser, and other relevant information.
+   * 
+   * @returns {Object} Device information object with identification details
+   */
 
   const getDeviceInfo = () => {
+    // Extract browser and system information from user agent
     const userAgent = navigator.userAgent;
     const platform = navigator.platform;
     
+    // Default device classification
     let deviceType = 'desktop';
     let deviceIcon = '💻';
     let osName = 'Unknown OS';
     let deviceName = 'Unknown Device';
     
+    // Device type and OS detection based on user agent patterns
     if (/iPhone/i.test(userAgent)) {
       deviceType = 'mobile';
       deviceIcon = '📱';
@@ -67,52 +136,87 @@ export default function Sender() {
       deviceName = 'Linux PC';
     }
     
+    // Return comprehensive device information object
     return {
-      type: 'sender',
-      userAgent,
-      platform,
-      deviceType,
-      deviceIcon,
-      deviceName,
-      osName,
-      screenResolution: `${screen.width}x${screen.height}`,
-      language: navigator.language,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      timestamp: new Date().toISOString()
+      type: 'sender',                                                    // Device role in the transfer
+      userAgent,                                                         // Full user agent string
+      platform,                                                          // Browser platform information
+      deviceType,                                                        // Device category (mobile/tablet/desktop)
+      deviceIcon,                                                        // Emoji icon for UI display
+      deviceName,                                                        // Human-readable device name
+      osName,                                                           // Operating system name
+      screenResolution: `${screen.width}x${screen.height}`,            // Display resolution
+      language: navigator.language,                                      // Browser language setting
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,      // User's timezone
+      timestamp: new Date().toISOString()                              // Connection timestamp
     };
   };
 
-  // Drag and Drop handlers
+  // ============================================================================
+  // FILE HANDLING & DRAG-AND-DROP
+  // ============================================================================
+
+  /**
+   * Handle drag over events for file drop zone
+   * Prevents default browser behavior and provides visual feedback
+   */
   const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragOver(true);
+    e.preventDefault();          // Prevent default browser file handling
+    setIsDragOver(true);        // Show drag-over visual state
   };
 
+  /**
+   * Handle drag leave events for file drop zone
+   * Removes visual feedback when drag leaves the zone
+   */
   const handleDragLeave = (e) => {
-    e.preventDefault();
-    setIsDragOver(false);
+    e.preventDefault();         // Prevent default browser behavior
+    setIsDragOver(false);      // Remove drag-over visual state
   };
 
+  /**
+   * Handle file drop events
+   * Processes dropped files and updates the current file state
+   */
   const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const files = e.dataTransfer.files;
+    e.preventDefault();                    // Prevent default browser file handling
+    setIsDragOver(false);                 // Remove drag-over visual state
+    const files = e.dataTransfer.files;   // Extract dropped files
     if (files.length > 0) {
-      setCurrentFile(files[0]);
+      setCurrentFile(files[0]);           // Use the first dropped file
     }
   };
 
+  /**
+   * Handle file selection from file input dialog
+   * Updates current file state when user selects files via dialog
+   */
   const handleFileSelect = (e) => {
-    const files = e.target.files;
+    const files = e.target.files;  // Extract selected files
     if (files.length > 0) {
-      setCurrentFile(files[0]);
+      setCurrentFile(files[0]);    // Use the first selected file
     }
   };
 
+  /**
+   * Programmatically open the file selection dialog
+   * Triggered when user clicks on the file drop zone
+   */
   const openFileDialog = () => {
-    fileInputRef.current?.click();
+    fileInputRef.current?.click();  // Trigger click on hidden file input
   };
 
+  // ============================================================================
+  // UTILITY FUNCTIONS
+  // ============================================================================
+
+  /**
+   * Format file size in human-readable format
+   * Converts bytes to appropriate units (Bytes, KB, MB, GB)
+   * 
+   * @param {number} bytes - File size in bytes
+   * @returns {string} Formatted file size string
+   */
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -121,6 +225,10 @@ export default function Sender() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  /**
+   * Copy QR code link to clipboard with user feedback
+   * Uses modern clipboard API with fallback for older browsers
+   */
   const copyLinkToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(qrCode);
@@ -139,6 +247,10 @@ export default function Sender() {
     }
   };
 
+  /**
+   * Copy session ID to clipboard with user feedback
+   * Provides fallback method for browsers without clipboard API support
+   */
   const copySessionIdToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(sessionId);
@@ -157,12 +269,27 @@ export default function Sender() {
     }
   };
 
+  // ============================================================================
+  // SESSION MANAGEMENT
+  // ============================================================================
+
+  /**
+   * Create a new file sharing session
+   * 
+   * Generates a unique session ID, creates QR code URL, and sets up
+   * Socket.IO event handlers for device connection management.
+   * The session serves as a meeting point for sender and receiver devices.
+   */
   const createSession = () => {
+    // Generate random 6-character session ID
     const session = Math.random().toString(36).substring(2, 8);
     setSessionId(session);
+    
     // Build the QR URL using current location - ensure proper format for custom domain
     const currentUrl = new URL(window.location.href);
     const qrUrl = `${currentUrl.origin}/receive/${session}`;
+    
+    // Debug logging for QR code generation
     console.log('Debug QR Code generation:', {
       currentHref: window.location.href,
       origin: currentUrl.origin,
@@ -170,9 +297,16 @@ export default function Sender() {
       qrUrl,
       session
     });
+    
     setQrCode(qrUrl);
+    
+    // Join the session and provide device information
     socket.emit('join', { session, deviceInfo: getDeviceInfo() });
 
+    /**
+     * Handle new device joining the session
+     * Updates the connected devices list while preventing duplicates
+     */
     socket.on('device-joined', ({ device }) => {
       console.log('Device joined:', device);
       setConnectedDevices(prev => {
@@ -182,10 +316,20 @@ export default function Sender() {
         return [...prev, device];
       });
     });
+    
+    /**
+     * Handle device leaving the session
+     * Removes disconnected devices from the list
+     */
     socket.on('device-left', ({ socketId }) => {
       console.log('Device left:', socketId);
       setConnectedDevices(prev => prev.filter(device => device.id !== socketId));
     });
+    
+    /**
+     * Handle session information updates
+     * Receives the current list of devices in the session
+     */
     socket.on('session-info', ({ devices }) => {
       console.log('Session info received:', devices);
       // Filter out sender devices and duplicates
@@ -197,7 +341,22 @@ export default function Sender() {
     });
   };
 
+  // ============================================================================
+  // FILE TRANSFER IMPLEMENTATION
+  // ============================================================================
+
+  /**
+   * Initiate file transfer to connected devices
+   * 
+   * This function implements the core file transfer logic using WebRTC
+   * data channels for peer-to-peer communication. It handles:
+   * - Connection validation
+   * - WebRTC peer connection setup
+   * - Chunked file transfer for reliability
+   * - Progress tracking and speed calculation
+   */
   const startSending = async () => {
+    // Validate transfer prerequisites
     if (!currentFile) {
       alert('Please select a file first');
       return;
@@ -208,63 +367,94 @@ export default function Sender() {
       return;
     }
 
+    // Initialize transfer state
     const file = currentFile;
     const currentSession = sessionId;
     setIsTransferring(true);
     setTransferProgress(0);
 
+    // Notify all devices in session that transfer is starting
     socket.emit('transfer-start', { session: currentSession, fileName: file.name, fileSize: file.size });
 
+    // Create WebRTC peer connection with STUN servers for NAT traversal
     const pc = new RTCPeerConnection({ 
       iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
+        { urls: 'stun:stun.l.google.com:19302' },      // Google STUN server 1
+        { urls: 'stun:stun1.l.google.com:19302' }      // Google STUN server 2
       ]
     });
     setPeerConnection(pc);
+    
+    // Create data channel for file transfer with ordered delivery
     const dc = pc.createDataChannel('file', {
-      ordered: true
+      ordered: true    // Ensure chunks arrive in order
     });
 
-    // Only join once - remove the duplicate join call
-
+    /**
+     * Handle ICE candidate events for WebRTC connection establishment
+     * ICE candidates are used to establish the optimal connection path
+     */
     pc.onicecandidate = (event) => {
-      if (event.candidate) socket.emit('candidate', { session: currentSession, candidate: event.candidate });
+      if (event.candidate) {
+        socket.emit('candidate', { session: currentSession, candidate: event.candidate });
+      }
     };
 
+    // Create and send WebRTC offer to establish connection
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
     socket.emit('offer', { session: currentSession, offer });
 
+    /**
+     * Handle WebRTC answer from receiver
+     * Completes the connection negotiation process
+     */
     socket.on('answer', async ({ answer }) => {
       await pc.setRemoteDescription(new RTCSessionDescription(answer));
     });
 
+    /**
+     * Handle incoming ICE candidates from receiver
+     * Adds candidates to complete the connection establishment
+     */
     socket.on('candidate', async ({ candidate }) => {
       await pc.addIceCandidate(new RTCIceCandidate(candidate));
     });
 
+    /**
+     * Data channel open event - start file transfer
+     * This is where the actual file transfer logic begins
+     */
     dc.onopen = () => {
-      // Simple and reliable chunk size
-      const chunkSize = 16384; // 16KB chunks - reliable and tested
-      let offset = 0;
+      // Configuration for chunked file transfer
+      const chunkSize = 16384; // 16KB chunks - reliable and tested size
+      let offset = 0;          // Current position in file
       const reader = new FileReader();
       let startTime = null;
       let lastProgressTime = null;
       let lastOffset = 0;
 
+      /**
+       * File reader load event - handles the actual file transfer
+       * Reads the file into memory and initiates chunked sending
+       */
       reader.onload = (e) => {
         const arrayBuffer = e.target.result;
         const totalSize = arrayBuffer.byteLength;
         startTime = Date.now();
         lastProgressTime = startTime;
 
-        // Send filename first
+        // Send filename first so receiver knows what file it's getting
         dc.send(JSON.stringify({ type: 'filename', name: file.name }));
 
+        /**
+         * Recursive function to send file chunks
+         * Sends file in small chunks to ensure reliability and enable progress tracking
+         */
         const sendChunk = () => {
+          // Check if transfer is complete
           if (offset >= totalSize) {
-            // Transfer complete
+            // Transfer complete - send end-of-file marker
             dc.send('EOF');
             setTransferProgress(100);
             setTransferSpeed(0);
@@ -278,14 +468,15 @@ export default function Sender() {
           dc.send(chunk);
           offset += chunkSize;
           
-          // Update progress
+          // Update progress percentage
           const progress = Math.round((offset / totalSize) * 100);
           setTransferProgress(progress);
           socket.emit('transfer-progress', { session: currentSession, progress });
           
-          // Calculate speed every 500ms
+          // Calculate transfer speed every 500ms
           const currentTime = Date.now();
           if (currentTime - lastProgressTime >= 500) {
+            // Calculate transfer speed in bytes per second
             const timeDiff = (currentTime - lastProgressTime) / 1000;
             const dataDiff = offset - lastOffset;
             const speed = dataDiff / timeDiff;
@@ -294,22 +485,32 @@ export default function Sender() {
             lastOffset = offset;
           }
 
-          // Continue with next chunk after small delay
+          // Continue with next chunk after small delay to prevent overwhelming
           setTimeout(sendChunk, 10);
         };
         
+        // Start the chunked transfer process
         sendChunk();
       };
 
+      // Read the entire file into memory as ArrayBuffer
       reader.readAsArrayBuffer(file);
     };
 
+    /**
+     * Handle data channel errors
+     * Resets transfer state if data channel encounters issues
+     */
     dc.onerror = (error) => {
       console.error('Data channel error:', error);
       setIsTransferring(false);
       setTransferSpeed(0);
     };
 
+    /**
+     * Monitor WebRTC connection state changes
+     * Handles connection failures and disconnections
+     */
     pc.onconnectionstatechange = () => {
       console.log('Connection state:', pc.connectionState);
       if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
@@ -319,7 +520,18 @@ export default function Sender() {
     };
   };
 
+  // ============================================================================
+  // SESSION CLEANUP & RESET
+  // ============================================================================
+
+  /**
+   * Reset the entire session state
+   * 
+   * Cleans up all session-related state, closes connections,
+   * and removes event listeners to prepare for a new session.
+   */
   const resetSession = () => {
+    // Reset all session state
     setSessionId('');
     setQrCode('');
     setIsTransferring(false);
@@ -329,55 +541,64 @@ export default function Sender() {
     setCurrentFile(null);
     setLinkCopied(false);
     setSessionIdCopied(false);
+    
+    // Close WebRTC connection if it exists
     if (peerConnection) peerConnection.close();
     setPeerConnection(null);
+    
+    // Remove Socket.IO event listeners to prevent memory leaks
     socket.off('device-joined');
     socket.off('device-left');
     socket.off('session-info');
   };
 
-  // Function to set custom device name
-  const setCustomDeviceName = () => {
-    const currentName = localStorage.getItem('deviceCustomName') || '';
-    const newName = prompt('Enter your name to personalize your device (e.g., "Aman" will show as "Aman\'s iPhone"):', currentName);
-    
-    if (newName !== null) { // User didn't cancel
-      if (newName.trim()) {
-        localStorage.setItem('deviceCustomName', newName.trim());
-      } else {
-        localStorage.removeItem('deviceCustomName');
-      }
-      
-      // Refresh the session if one exists to update device info
-      if (sessionId) {
-        createSession();
-      }
-    }
-  };
+  // ============================================================================
+  // DEVICE CUSTOMIZATION
+  // ============================================================================
 
-  // Tab switching
+  // ============================================================================
+  // TAB NAVIGATION SYSTEM
+  // ============================================================================
+
+  /**
+   * Switch between Send and Receive tabs
+   * 
+   * Handles tab navigation and resets appropriate state when switching modes.
+   * This allows the same component to handle both sending and receiving workflows.
+   * 
+   * @param {string} tab - The tab to switch to ('send' or 'receive')
+   */
   const switchTab = (tab) => {
     setActiveTab(tab);
     if (tab === 'send') {
-      // Reset receiver states when switching to send
+      // Reset receiver states when switching to send mode
       setReceiverSessionId('');
     } else {
-      // Reset sender states when switching to receive
+      // Reset sender states when switching to receive mode
       resetSession();
     }
   };
 
-  // Receiver functionality - redirect to proper receiver page
+  // ============================================================================
+  // RECEIVER MODE FUNCTIONALITY
+  // ============================================================================
+
+  /**
+   * Join a receiver session by redirecting to the proper receiver page
+   * 
+   * This function handles the session joining workflow from the send page.
+   * It validates the session exists before redirecting to prevent errors.
+   */
   const joinReceiveSession = () => {
     if (!receiverSessionId.trim()) {
       alert('Please enter a session ID');
       return;
     }
 
-    // Convert session ID to lowercase before verification and joining
+    // Convert session ID to lowercase for consistency
     const normalizedSessionId = receiverSessionId.trim().toLowerCase();
 
-    // Verify session exists before redirecting
+    // Verify session exists before redirecting to prevent broken links
     verifySession(normalizedSessionId, (exists) => {
       if (exists) {
         // Redirect to the proper receiver URL
@@ -390,14 +611,30 @@ export default function Sender() {
     });
   };
 
+  /**
+   * Reset receiver mode input
+   * Clears the session ID input field
+   */
   const resetReceiveMode = () => {
     setReceiverSessionId('');
   };
 
-  // Function to verify session exists
+  /**
+   * Verify that a session exists on the server
+   * 
+   * This function checks with the server to ensure a session is active
+   * before attempting to connect, preventing users from joining non-existent sessions.
+   * 
+   * @param {string} sessionId - The session ID to verify
+   * @param {Function} callback - Callback function that receives the verification result
+   */
   const verifySession = (sessionId, callback) => {
     socket.emit('verify-session', { sessionId });
     
+    /**
+     * Handle session verification response
+     * Ensures the callback is only called once and cleans up listeners
+     */
     const onSessionVerified = ({ exists, sessionId: verifiedSessionId }) => {
       if (verifiedSessionId === sessionId) {
         socket.off('session-verified', onSessionVerified);
@@ -407,13 +644,28 @@ export default function Sender() {
     
     socket.on('session-verified', onSessionVerified);
     
-    // Timeout after 5 seconds
+    // Timeout after 5 seconds if no response received
     setTimeout(() => {
       socket.off('session-verified', onSessionVerified);
       callback(false);
     }, 5000);
   };
 
+  // ============================================================================
+  // COMPONENT RENDER
+  // ============================================================================
+
+  /**
+   * Main component render function
+   * 
+   * Renders the complete sender interface with:
+   * - Tab navigation (Send/Receive)
+   * - Session creation and management
+   * - File upload and drag & drop
+   * - Connection monitoring
+   * - Transfer progress tracking
+   * - QR code generation for mobile devices
+   */
   return (
     <div className={`sender-container ${sessionId ? 'session-active' : ''}`}>
       <div className={`sender-box ${sessionId ? 'session-active' : ''}`}>
