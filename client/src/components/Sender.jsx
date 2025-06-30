@@ -376,18 +376,24 @@ export default function Sender() {
     // Notify all devices in session that transfer is starting
     socket.emit('transfer-start', { session: currentSession, fileName: file.name, fileSize: file.size });
 
-    // Create WebRTC peer connection with STUN servers for NAT traversal
+    // Create WebRTC peer connection with multiple STUN servers for better mobile compatibility
     const pc = new RTCPeerConnection({ 
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },      // Google STUN server 1
-        { urls: 'stun:stun1.l.google.com:19302' }      // Google STUN server 2
-      ]
+        { urls: 'stun:stun1.l.google.com:19302' },     // Google STUN server 2
+        { urls: 'stun:stun2.l.google.com:19302' },     // Google STUN server 3
+        { urls: 'stun:stun3.l.google.com:19302' },     // Google STUN server 4
+        { urls: 'stun:stun4.l.google.com:19302' }      // Google STUN server 5
+      ],
+      iceCandidatePoolSize: 10  // Increase ICE candidate pool for better connectivity
     });
     setPeerConnection(pc);
     
-    // Create data channel for file transfer with ordered delivery
+    // Create data channel for file transfer with enhanced configuration for mobile compatibility
     const dc = pc.createDataChannel('file', {
-      ordered: true    // Ensure chunks arrive in order
+      ordered: true,        // Ensure chunks arrive in order
+      maxRetransmits: 3,    // Retry failed packets up to 3 times
+      protocol: 'file-transfer'  // Custom protocol identifier
     });
 
     /**
@@ -396,7 +402,37 @@ export default function Sender() {
      */
     pc.onicecandidate = (event) => {
       if (event.candidate) {
+        console.log('Sender: Sending ICE candidate', event.candidate.type);
         socket.emit('candidate', { session: currentSession, candidate: event.candidate });
+      } else {
+        console.log('Sender: ICE candidate gathering complete');
+      }
+    };
+
+    // Add mobile transfer debugging
+    pc.ondatachannelopen = () => {
+      console.log('Sender: Data channel opened successfully');
+    };
+
+    pc.ondatachannelerror = (error) => {
+      console.error('Sender: Data channel error:', error);
+    };
+
+    // Add connection state monitoring for debugging
+    pc.onconnectionstatechange = () => {
+      console.log('Sender: Connection state changed to', pc.connectionState);
+      if (pc.connectionState === 'failed') {
+        console.error('Sender: WebRTC connection failed');
+        setStatus('Connection failed - please try again');
+      } else if (pc.connectionState === 'connected') {
+        console.log('Sender: WebRTC connection established successfully');
+      }
+    };
+
+    pc.oniceconnectionstatechange = () => {
+      console.log('Sender: ICE connection state changed to', pc.iceConnectionState);
+      if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+        console.error('Sender: ICE connection failed or disconnected');
       }
     };
 
@@ -426,8 +462,11 @@ export default function Sender() {
      * This is where the actual file transfer logic begins
      */
     dc.onopen = () => {
-      // Configuration for chunked file transfer
-      const chunkSize = 16384; // 16KB chunks - reliable and tested size
+      console.log('Sender: Data channel opened successfully');
+      // Configuration for chunked file transfer with mobile device optimization
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      const chunkSize = isMobile ? 8192 : 16384; // Smaller chunks for mobile (8KB vs 16KB)
+      console.log('Sender: Using chunk size', chunkSize, 'bytes for', isMobile ? 'mobile' : 'desktop');
       let offset = 0;          // Current position in file
       const reader = new FileReader();
       let startTime = null;
@@ -463,9 +502,27 @@ export default function Sender() {
             return;
           }
 
-          // Send one chunk at a time
+          // Send one chunk at a time with buffer monitoring for mobile compatibility
           const chunk = arrayBuffer.slice(offset, offset + chunkSize);
-          dc.send(chunk);
+          
+          // Check data channel buffer before sending (important for mobile devices)
+          if (dc.bufferedAmount > 1024 * 1024) { // 1MB buffer limit
+            console.log('Sender: Buffer full, waiting...', dc.bufferedAmount);
+            // Wait for buffer to drain before sending more data
+            setTimeout(sendChunk, 100);
+            return;
+          }
+          
+          try {
+            dc.send(chunk);
+            console.log('Sender: Sent chunk', offset, 'of', totalSize, 'bytes');
+          } catch (error) {
+            console.error('Sender: Error sending chunk:', error);
+            setStatus('Transfer error - please try again');
+            setIsTransferring(false);
+            return;
+          }
+          
           offset += chunkSize;
           
           // Update progress percentage
@@ -485,8 +542,9 @@ export default function Sender() {
             lastOffset = offset;
           }
 
-          // Continue with next chunk after small delay to prevent overwhelming
-          setTimeout(sendChunk, 10);
+          // Continue with next chunk after delay (longer delay for mobile for stability)
+          const delay = isMobile ? 25 : 10; // Slower sending rate for mobile devices
+          setTimeout(sendChunk, delay);
         };
         
         // Start the chunked transfer process
@@ -497,14 +555,19 @@ export default function Sender() {
       reader.readAsArrayBuffer(file);
     };
 
-    /**
-     * Handle data channel errors
-     * Resets transfer state if data channel encounters issues
-     */
+    // Add error handling for data channel
     dc.onerror = (error) => {
-      console.error('Data channel error:', error);
+      console.error('Sender: Data channel error:', error);
+      setStatus('Data channel error - please try again');
       setIsTransferring(false);
-      setTransferSpeed(0);
+    };
+
+    dc.onclose = () => {
+      console.log('Sender: Data channel closed');
+      if (isTransferring) {
+        setStatus('Connection closed - transfer interrupted');
+        setIsTransferring(false);
+      }
     };
 
     /**

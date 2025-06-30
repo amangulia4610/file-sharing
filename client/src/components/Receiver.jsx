@@ -360,12 +360,16 @@ export default function Receiver() {
      * for file transfer, and manages the complete receiving workflow.
      */
     const setupConnection = () => {
-      // Create WebRTC peer connection with STUN servers for NAT traversal
+      // Create WebRTC peer connection with multiple STUN servers for better mobile compatibility
       const pc = new RTCPeerConnection({
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },      // Google STUN server 1
-          { urls: 'stun:stun1.l.google.com:19302' }      // Google STUN server 2
-        ]
+          { urls: 'stun:stun1.l.google.com:19302' },     // Google STUN server 2
+          { urls: 'stun:stun2.l.google.com:19302' },     // Google STUN server 3
+          { urls: 'stun:stun3.l.google.com:19302' },     // Google STUN server 4
+          { urls: 'stun:stun4.l.google.com:19302' }      // Google STUN server 5
+        ],
+        iceCandidatePoolSize: 10  // Increase ICE candidate pool for better connectivity
       });
 
       // Add cleanup function for peer connection
@@ -483,7 +487,30 @@ export default function Receiver() {
          * Confirms that the data channel is ready for file transfer
          */
         dc.onopen = () => {
+          console.log('Receiver: Data channel opened successfully');
           setStatus('Data channel open, ready to receive...');
+        };
+
+        /**
+         * Data channel error event
+         * Handles any errors with the data channel
+         */
+        dc.onerror = (error) => {
+          console.error('Receiver: Data channel error:', error);
+          setStatus('Data channel error - please try again');
+          setConnectionState('error');
+        };
+
+        /**
+         * Data channel close event
+         * Handles data channel closure
+         */
+        dc.onclose = () => {
+          console.log('Receiver: Data channel closed');
+          if (connectionState === 'receiving') {
+            setStatus('Connection lost during transfer');
+            setConnectionState('error');
+          }
         };
 
         /**
@@ -493,17 +520,39 @@ export default function Receiver() {
         dc.onmessage = (e) => {
           if (typeof e.data === 'string') {
             if (e.data === 'EOF') {
-              // Create and download file
+              // Create and download file with enhanced mobile compatibility
+              console.log('Receiver: Creating file blob from', chunks.length, 'chunks');
               const blob = new Blob(chunks);
               const url = URL.createObjectURL(blob);
+              
+              // Enhanced download method that works better on mobile
               const a = document.createElement('a');
               a.href = url;
               a.download = originalFileName;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-              URL.revokeObjectURL(url);
+              a.style.display = 'none';
               
+              // For mobile browsers, we need to ensure the download triggers properly
+              document.body.appendChild(a);
+              
+              // Try multiple methods to trigger download for better mobile compatibility
+              try {
+                a.click();
+              } catch (err) {
+                console.log('First download method failed, trying alternative...');
+                // Alternative method for some mobile browsers
+                if (navigator.userAgent.match(/iPhone|iPad|iPod|Android/i)) {
+                  // For mobile, open in new window if direct download fails
+                  window.open(url, '_blank');
+                }
+              }
+              
+              // Cleanup
+              setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              }, 100);
+              
+              console.log('Receiver: File download triggered successfully');
               setStatus('Download complete!');
               setDownloadProgress(100);
               setConnectionState('completed');
@@ -572,13 +621,51 @@ export default function Receiver() {
           }
         };
 
-        dc.onerror = () => {
+        /**
+         * Handle data channel errors
+         * Updates UI to show error state
+         */
+        dc.onerror = (error) => {
+          console.error('Receiver: Data channel error:', error);
           setStatus('Error receiving file');
+          setConnectionState('error');
+        };
+
+        /**
+         * Handle data channel close
+         * Cleanup when data channel is closed
+         */
+        dc.onclose = () => {
+          console.log('Receiver: Data channel closed');
         };
       };
 
       pc.onicecandidate = (event) => {
-        if (event.candidate) socket.emit('candidate', { session, candidate: event.candidate });
+        if (event.candidate) {
+          console.log('Receiver: Sending ICE candidate', event.candidate.type);
+          socket.emit('candidate', { session, candidate: event.candidate });
+        } else {
+          console.log('Receiver: ICE candidate gathering complete');
+        }
+      };
+
+      // Add connection state monitoring for debugging
+      pc.onconnectionstatechange = () => {
+        console.log('Receiver: Connection state changed to', pc.connectionState);
+        if (pc.connectionState === 'connected') {
+          setStatus('WebRTC connection established!');
+        } else if (pc.connectionState === 'failed') {
+          console.error('Receiver: WebRTC connection failed');
+          setStatus('Connection failed - please try again');
+          setConnectionState('error');
+        }
+      };
+
+      pc.oniceconnectionstatechange = () => {
+        console.log('Receiver: ICE connection state changed to', pc.iceConnectionState);
+        if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+          setStatus('Connected! Ready to receive files...');
+        }
       };
 
       const handleOffer = async ({ offer }) => {
